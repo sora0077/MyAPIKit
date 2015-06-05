@@ -10,6 +10,12 @@
 		D99762051B2219C100A48209 /* APIKit.h in Headers */ = {isa = PBXBuildFile; fileRef = D99762041B2219C100A48209 /* APIKit.h */; settings = {ATTRIBUTES = (Public, ); }; };
 		D997620B1B2219C100A48209 /* APIKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = D99761FF1B2219C100A48209 /* APIKit.framework */; };
 		D99762121B2219C100A48209 /* APIKitTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = D99762111B2219C100A48209 /* APIKitTests.swift */; };
+		D997621D1B221B0C00A48209 /* APIKit.swift in Sources */ = {isa = PBXBuildFile; fileRef = D997621C1B221B0C00A48209 /* APIKit.swift */; };
+		D997621E1B221B0C00A48209 /* APIKit.swift in Sources */ = {isa = PBXBuildFile; fileRef = D997621C1B221B0C00A48209 /* APIKit.swift */; };
+		D99762221B221B6A00A48209 /* Alamofire.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = D99762201B221B6A00A48209 /* Alamofire.framework */; };
+		D99762231B221B6A00A48209 /* Alamofire.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = D99762201B221B6A00A48209 /* Alamofire.framework */; };
+		D99762241B221B6A00A48209 /* BrightFutures.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = D99762211B221B6A00A48209 /* BrightFutures.framework */; };
+		D99762251B221B6A00A48209 /* BrightFutures.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = D99762211B221B6A00A48209 /* BrightFutures.framework */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -29,6 +35,9 @@
 		D997620A1B2219C100A48209 /* APIKitTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = APIKitTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		D99762101B2219C100A48209 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		D99762111B2219C100A48209 /* APIKitTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = APIKitTests.swift; sourceTree = "<group>"; };
+		D997621C1B221B0C00A48209 /* APIKit.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = APIKit.swift; sourceTree = "<group>"; };
+		D99762201B221B6A00A48209 /* Alamofire.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Alamofire.framework; path = Carthage/Build/iOS/Alamofire.framework; sourceTree = "<group>"; };
+		D99762211B221B6A00A48209 /* BrightFutures.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = BrightFutures.framework; path = Carthage/Build/iOS/BrightFutures.framework; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -36,6 +45,8 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				D99762221B221B6A00A48209 /* Alamofire.framework in Frameworks */,
+				D99762241B221B6A00A48209 /* BrightFutures.framework in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -43,7 +54,9 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				D99762251B221B6A00A48209 /* BrightFutures.framework in Frameworks */,
 				D997620B1B2219C100A48209 /* APIKit.framework in Frameworks */,
+				D99762231B221B6A00A48209 /* Alamofire.framework in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -55,6 +68,7 @@
 			children = (
 				D99762011B2219C100A48209 /* APIKit */,
 				D997620E1B2219C100A48209 /* APIKitTests */,
+				D997621F1B221B5400A48209 /* Frameworks */,
 				D99762001B2219C100A48209 /* Products */,
 			);
 			sourceTree = "<group>";
@@ -71,6 +85,7 @@
 		D99762011B2219C100A48209 /* APIKit */ = {
 			isa = PBXGroup;
 			children = (
+				D997621B1B221AE700A48209 /* src */,
 				D99762041B2219C100A48209 /* APIKit.h */,
 				D99762021B2219C100A48209 /* Supporting Files */,
 			);
@@ -100,6 +115,23 @@
 				D99762101B2219C100A48209 /* Info.plist */,
 			);
 			name = "Supporting Files";
+			sourceTree = "<group>";
+		};
+		D997621B1B221AE700A48209 /* src */ = {
+			isa = PBXGroup;
+			children = (
+				D997621C1B221B0C00A48209 /* APIKit.swift */,
+			);
+			path = src;
+			sourceTree = "<group>";
+		};
+		D997621F1B221B5400A48209 /* Frameworks */ = {
+			isa = PBXGroup;
+			children = (
+				D99762201B221B6A00A48209 /* Alamofire.framework */,
+				D99762211B221B6A00A48209 /* BrightFutures.framework */,
+			);
+			name = Frameworks;
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
@@ -209,6 +241,7 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				D997621D1B221B0C00A48209 /* APIKit.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -217,6 +250,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				D99762121B2219C100A48209 /* APIKitTests.swift in Sources */,
+				D997621E1B221B0C00A48209 /* APIKit.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -323,25 +357,36 @@
 		D99762161B2219C100A48209 /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
+				CLANG_ENABLE_MODULES = YES;
 				DEFINES_MODULE = YES;
 				DYLIB_COMPATIBILITY_VERSION = 1;
 				DYLIB_CURRENT_VERSION = 1;
 				DYLIB_INSTALL_NAME_BASE = "@rpath";
+				FRAMEWORK_SEARCH_PATHS = (
+					"$(inherited)",
+					"$(PROJECT_DIR)/Carthage/Build/iOS",
+				);
 				INFOPLIST_FILE = APIKit/Info.plist;
 				INSTALL_PATH = "$(LOCAL_LIBRARY_DIR)/Frameworks";
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks @loader_path/Frameworks";
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SKIP_INSTALL = YES;
+				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
 			};
 			name = Debug;
 		};
 		D99762171B2219C100A48209 /* Release */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
+				CLANG_ENABLE_MODULES = YES;
 				DEFINES_MODULE = YES;
 				DYLIB_COMPATIBILITY_VERSION = 1;
 				DYLIB_CURRENT_VERSION = 1;
 				DYLIB_INSTALL_NAME_BASE = "@rpath";
+				FRAMEWORK_SEARCH_PATHS = (
+					"$(inherited)",
+					"$(PROJECT_DIR)/Carthage/Build/iOS",
+				);
 				INFOPLIST_FILE = APIKit/Info.plist;
 				INSTALL_PATH = "$(LOCAL_LIBRARY_DIR)/Frameworks";
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks @loader_path/Frameworks";
@@ -356,6 +401,7 @@
 				FRAMEWORK_SEARCH_PATHS = (
 					"$(SDKROOT)/Developer/Library/Frameworks",
 					"$(inherited)",
+					"$(PROJECT_DIR)/Carthage/Build/iOS",
 				);
 				GCC_PREPROCESSOR_DEFINITIONS = (
 					"DEBUG=1",
@@ -373,6 +419,7 @@
 				FRAMEWORK_SEARCH_PATHS = (
 					"$(SDKROOT)/Developer/Library/Frameworks",
 					"$(inherited)",
+					"$(PROJECT_DIR)/Carthage/Build/iOS",
 				);
 				INFOPLIST_FILE = APIKitTests/Info.plist;
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks @loader_path/Frameworks";
