@@ -10,8 +10,8 @@ import Foundation
 import Alamofire
 import BrightFutures
 
-public typealias Method = Alamofire.Method
-public typealias Encoding = Alamofire.ParameterEncoding
+public typealias HTTPMethod = Alamofire.Method
+public typealias RequestEncoding = Alamofire.ParameterEncoding
 public typealias Request = Alamofire.Request
 public typealias Result = BrightFutures.Result
 
@@ -129,11 +129,11 @@ public protocol RequestToken: class {
     typealias Response
     typealias SerializedType
     
-    var method: Method { get }
+    var method: HTTPMethod { get }
     var URL: String { get }
     var headers: [String: AnyObject]? { get }
     var parameters: [String: AnyObject]? { get }
-    var encoding: Encoding { get }
+    var encoding: RequestEncoding { get }
     
     var resonseEncoding: ResponseEncoding { get }
     
