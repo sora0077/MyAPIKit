@@ -63,7 +63,7 @@ public final class API {
         let promise = Promise<T.Response>()
         
         let method = token.method
-        let URL = self.baseURL + token.URL
+        let URL = token.URL.hasPrefix("http") ? token.URL : self.baseURL + token.URL
         let parameters = token.parameters
         let encoding = token.encoding
         let serializer = token.resonseEncoding.serializer
