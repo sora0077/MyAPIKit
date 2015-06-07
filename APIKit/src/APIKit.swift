@@ -51,9 +51,11 @@ public final class API {
     
     private var execQueue: [Request] = []
     private let manager: Alamofire.Manager
+    private let baseURL: String
     
-    public init(configuration: NSURLSessionConfiguration = .defaultSessionConfiguration()) {
+    public init(baseURL: String = "", configuration: NSURLSessionConfiguration = .defaultSessionConfiguration()) {
         
+        self.baseURL = baseURL
         self.manager = Manager.sharedInstance
     }
     
@@ -61,7 +63,7 @@ public final class API {
         let promise = Promise<T.Response>()
         
         let method = token.method
-        let URL = token.URL
+        let URL = self.baseURL + token.URL
         let parameters = token.parameters
         let encoding = token.encoding
         let serializer = token.resonseEncoding.serializer
