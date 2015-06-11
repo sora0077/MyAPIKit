@@ -47,7 +47,7 @@ public enum ResponseEncoding {
 /**
 *
 */
-public final class API {
+public class API {
     
     private var execQueue: [Request] = []
     private let manager: Alamofire.Manager
@@ -56,7 +56,12 @@ public final class API {
     public init(baseURL: String = "", configuration: NSURLSessionConfiguration = .defaultSessionConfiguration()) {
         
         self.baseURL = baseURL
-        self.manager = Manager.sharedInstance
+        configuration.HTTPAdditionalHeaders = Manager.defaultHTTPHeaders
+        self.manager = Manager(configuration: configuration)
+    }
+    
+    public func additionalHeaders() -> [String: AnyObject]? {
+        return nil
     }
     
     public func request<T: RequestToken>(token: T) -> Future<T.Response> {
@@ -77,16 +82,22 @@ public final class API {
                     URLRequest.addValue(v.description, forHTTPHeaderField: k)
                 }
             }
+            if let headers = self.additionalHeaders() {
+                for (k, v) in headers {
+                    URLRequest.addValue(v.description, forHTTPHeaderField: k)
+                }
+            }
             return URLRequest
             }(),
             parameters: parameters).0
         
         let request = manager.request(URLRequest)
+        
         self.execQueue.append(request)
         
         request.APIKit_requestToken = token
         
-        request.validate().response(serializer: serializer) { [weak self] (URLRequest, response, object, error) -> Void in
+        request.validate(statusCode: 200..<300).response(serializer: serializer) { [weak self] (URLRequest, response, object, error) -> Void in
             
             if let s = self {
                 s.execQueue = s.execQueue.filter({ $0 !== request })
