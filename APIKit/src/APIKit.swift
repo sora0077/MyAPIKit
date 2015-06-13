@@ -15,6 +15,8 @@ public typealias RequestEncoding = Alamofire.ParameterEncoding
 public typealias Request = Alamofire.Request
 public typealias Result = BrightFutures.Result
 
+public let APIKitErrorDomain = "jp.sora0077.APIKit.ErrorDomain"
+
 
 extension Result {
     
@@ -119,12 +121,16 @@ public class API {
                 return
             }
             
-            let serialized = T.transform(URLRequest, response: response, object: object as! T.SerializedType)
-            switch serialized {
-            case let .Success(box):
-                promise.success(box.value)
-            case let .Failure(error):
-                promise.failure(error)
+            if let object = object as? T.SerializedType {
+                let serialized = T.transform(URLRequest, response: response, object: object)
+                switch serialized {
+                case let .Success(box):
+                    promise.success(box.value)
+                case let .Failure(error):
+                    promise.failure(error)
+                }
+            } else {
+                fatalError("The operation couldn’t be completed.")
             }
         }
         
@@ -137,7 +143,7 @@ public class API {
     
     public func cancel<T: RequestToken>(clazz: T.Type, f: T -> Bool) {
         
-        for request in self.execQueue {
+        for (i, request) in reverse(Array(enumerate(self.execQueue))) {
             if let box = request.APIKit_requestToken as? Box<T> where f(box.unbox)
             {
                 request.cancel()
