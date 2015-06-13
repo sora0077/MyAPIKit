@@ -47,6 +47,17 @@ public enum ResponseEncoding {
 /**
 *
 */
+final class Box<T> {
+    let unbox: T
+    
+    init(_ v: T) {
+        self.unbox = v
+    }
+}
+
+/**
+*
+*/
 public class API {
     
     private var execQueue: [Request] = []
@@ -95,7 +106,7 @@ public class API {
         
         self.execQueue.append(request)
         
-        request.APIKit_requestToken = token
+        request.APIKit_requestToken = Box(token)
         
         request.validate(statusCode: 200..<300).response(serializer: serializer) { [weak self] (URLRequest, response, object, error) -> Void in
             
@@ -127,7 +138,8 @@ public class API {
     public func cancel<T: RequestToken>(clazz: T.Type, f: T -> Bool) {
         
         for request in self.execQueue {
-            if let token = request.APIKit_requestToken as? T where f(token) {
+            if let box = request.APIKit_requestToken as? Box<T> where f(box.unbox)
+            {
                 request.cancel()
             }
         }
@@ -137,7 +149,7 @@ public class API {
 /**
 *  各APIを表現するためのプロトコル定義
 */
-public protocol RequestToken: class {
+public protocol RequestToken {
     
     typealias Response
     typealias SerializedType
