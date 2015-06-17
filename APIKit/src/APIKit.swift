@@ -127,7 +127,14 @@ public class API {
             }(),
             parameters: parameters).0
         
-        let request = manager.request(URLRequest).validate(statusCode: token.statusCode)
+        let request = manager.request(URLRequest)
+        
+        if let token = token as? RequestTokenValidatorStatusCode {
+            request.validate(statusCode: token.statusCode)
+        }
+        if let token = token as? RequestTokenValidatorContentType {
+            request.validate(contentType: token.contentType)
+        }
         
         self.execQueue.append(request)
         
@@ -195,7 +202,6 @@ public protocol RequestToken {
     typealias SerializedType
     
     var method: HTTPMethod { get }
-    var statusCode: Range<Int> { get }
     
     var URL: String { get }
     var headers: [String: AnyObject]? { get }
@@ -205,6 +211,16 @@ public protocol RequestToken {
     var resonseEncoding: ResponseEncoding { get }
     
     static func transform(request: NSURLRequest, response: NSHTTPURLResponse?, object: SerializedType) -> Result<Response>
+}
+
+public protocol RequestTokenValidatorStatusCode {
+    
+    var statusCode: Range<Int> { get }
+}
+
+public protocol RequestTokenValidatorContentType {
+    
+    var contentType: [String] { get }
 }
 
 private var AlamofireRequest_APIKit_requestToken: UInt8 = 0
