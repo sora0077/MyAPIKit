@@ -57,6 +57,10 @@ final class Box<T> {
     }
 }
 
+func url_encode(str: String, characterSet: NSCharacterSet = .URLPathAllowedCharacterSet()) -> String {
+    return str.stringByAddingPercentEncodingWithAllowedCharacters(characterSet)!
+}
+
 /**
 *
 */
@@ -80,8 +84,19 @@ public class API {
     public func request<T: RequestToken>(token: T) -> Future<T.Response> {
         let promise = Promise<T.Response>()
         
+        func encodedUrl(str: String) -> String {
+            if str.hasPrefix("http") {
+                var vs = split(str, maxSplit: 2, allowEmptySlices: true, isSeparator: { $0 == "/" })
+                let last = vs.count - 1
+                vs[last] = url_encode(vs[last])
+                return join("/", vs)
+            }
+            
+            return self.baseURL + url_encode(str)
+        }
+        
         let method = token.method
-        let URL = token.URL.hasPrefix("http") ? token.URL : self.baseURL + token.URL
+        let URL = encodedUrl(token.URL)
         let parameters = token.parameters
         let encoding = token.encoding
         let serializer = token.resonseEncoding.serializer
