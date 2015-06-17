@@ -61,6 +61,11 @@ func url_encode(str: String, characterSet: NSCharacterSet = .URLPathAllowedChara
     return str.stringByAddingPercentEncodingWithAllowedCharacters(characterSet)!
 }
 
+public protocol APIDebugger {
+    
+    func response(request: NSURLRequest, response: NSHTTPURLResponse, result: Result<String!>)
+}
+
 /**
 *
 */
@@ -70,11 +75,14 @@ public class API {
     private let manager: Alamofire.Manager
     private let baseURL: String
     
-    public init(baseURL: String = "", configuration: NSURLSessionConfiguration = .defaultSessionConfiguration()) {
+    private let debugger: APIDebugger?
+    
+    public init(baseURL: String = "", configuration: NSURLSessionConfiguration = .defaultSessionConfiguration(), debugger: APIDebugger? = nil) {
         
         self.baseURL = baseURL
         configuration.HTTPAdditionalHeaders = Manager.defaultHTTPHeaders
         self.manager = Manager(configuration: configuration)
+        self.debugger = debugger
     }
     
     public func additionalHeaders() -> [String: AnyObject]? {
@@ -119,13 +127,24 @@ public class API {
             }(),
             parameters: parameters).0
         
-        let request = manager.request(URLRequest)
+        let request = manager.request(URLRequest).validate(statusCode: 200..<300)
         
         self.execQueue.append(request)
         
         request.APIKit_requestToken = Box(token)
         
-        request.validate(statusCode: 200..<300).response(serializer: serializer) { [weak self] (URLRequest, response, object, error) -> Void in
+        if let debugger = debugger {
+            request.responseString(encoding: NSUTF8StringEncoding) { URLRequest, response, object, error in
+                let result: Result<String!>
+                if let e = error {
+                    result = Result(error: e)
+                } else {
+                    result = Result(object)
+                }
+                debugger.response(URLRequest, response: response!, result: result)
+            }
+        }
+        request.response(serializer: serializer) { [weak self] URLRequest, response, object, error in
             
             if let s = self {
                 s.execQueue = s.execQueue.filter({ $0 !== request })
