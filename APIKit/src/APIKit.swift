@@ -127,7 +127,7 @@ public class API {
             }(),
             parameters: parameters).0
         
-        let request = manager.request(URLRequest).validate(statusCode: 200..<300)
+        let request = manager.request(URLRequest).validate(statusCode: token.statusCode)
         
         self.execQueue.append(request)
         
@@ -195,6 +195,8 @@ public protocol RequestToken {
     typealias SerializedType
     
     var method: HTTPMethod { get }
+    var statusCode: Range<Int> { get }
+    
     var URL: String { get }
     var headers: [String: AnyObject]? { get }
     var parameters: [String: AnyObject]? { get }
