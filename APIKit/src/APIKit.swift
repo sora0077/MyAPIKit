@@ -49,12 +49,27 @@ public enum ResponseEncoding {
 /**
 *
 */
-final class Box<T> {
-    let unbox: T
+final class Pack {
+    let token: Any
+    let request: Request
+    let uuid: NSUUID
     
-    init(_ v: T) {
-        self.unbox = v
+    init(_ token: Any, _ request: Request) {
+        self.token = token
+        self.request = request
+        self.uuid = NSUUID()
     }
+}
+
+extension Pack: Hashable {
+    
+    var hashValue: Int {
+        return uuid.hashValue
+    }
+}
+
+func ==(lhs: Pack, rhs: Pack) -> Bool {
+    return lhs.uuid == rhs.uuid
 }
 
 func url_encode(str: String, characterSet: NSCharacterSet = .URLPathAllowedCharacterSet()) -> String {
@@ -71,7 +86,7 @@ public protocol APIDebugger {
 */
 public class API {
     
-    private var execQueue: [Request] = []
+    private var execQueue: Set<Pack> = []
     private let manager: Alamofire.Manager
     private let baseURL: String
     
@@ -87,6 +102,10 @@ public class API {
     
     public func additionalHeaders() -> [String: AnyObject]? {
         return nil
+    }
+    
+    public func updateURLRequest(request: NSMutableURLRequest) {
+        
     }
     
     public func request<T: RequestToken>(token: T) -> Future<T.Response> {
@@ -113,15 +132,19 @@ public class API {
         let URLRequest = encoding.encode({ () -> NSURLRequest in
             let URLRequest = NSMutableURLRequest(URL: NSURL(string: URL)!)
             URLRequest.HTTPMethod = method.rawValue
-            if let headers = token.headers {
-                for (k, v) in headers {
-                    URLRequest.addValue(v.description, forHTTPHeaderField: k)
-                }
-            }
             if let headers = self.additionalHeaders() {
                 for (k, v) in headers {
-                    URLRequest.addValue(v.description, forHTTPHeaderField: k)
+                    URLRequest.addValue("\(v)", forHTTPHeaderField: k)
                 }
+            }
+            if let headers = token.headers {
+                for (k, v) in headers {
+                    URLRequest.addValue("\(v)", forHTTPHeaderField: k)
+                }
+            }
+            self.updateURLRequest(URLRequest)
+            if let token = token as? RequestTokenTimeoutInterval {
+                URLRequest.timeoutInterval = token.timeoutInterval
             }
             return URLRequest
             }(),
@@ -136,9 +159,20 @@ public class API {
             request.validate(contentType: token.contentType)
         }
         
-        self.execQueue.append(request)
+        switch token {
+        case let _ as RequestTokenValidatorStatusCode:
+            break
+        case let _ as RequestTokenValidatorContentType:
+            break
+        default:
+            request.validate()
+        }
         
-        request.APIKit_requestToken = Box(token)
+        let boxed = Pack(token, request)
+        
+        self.execQueue.insert(boxed)
+        
+        request.APIKit_requestToken = boxed
         
         if let debugger = debugger {
             request.responseString(encoding: NSUTF8StringEncoding) { URLRequest, response, object, error in
@@ -154,7 +188,7 @@ public class API {
         request.response(serializer: serializer) { [weak self] URLRequest, response, object, error in
             
             if let s = self {
-                s.execQueue = s.execQueue.filter({ $0 !== request })
+                s.execQueue.remove(boxed)
             }
             
             if let error = error {
@@ -179,15 +213,16 @@ public class API {
     }
     
     public func cancel<T: RequestToken>(clazz: T.Type) {
-        cancel(clazz, f: { _ in true })
+        cancel(clazz, { _ in true })
     }
     
-    public func cancel<T: RequestToken>(clazz: T.Type, f: T -> Bool) {
+    public func cancel<T: RequestToken>(clazz: T.Type, _ f: T -> Bool) {
         
-        for (i, request) in reverse(Array(enumerate(self.execQueue))) {
-            if let box = request.APIKit_requestToken as? Box<T> where f(box.unbox)
-            {
-                request.cancel()
+        for pack in execQueue {
+            if let token = pack.token as? T where f(token) {
+                Queue.global.async {
+                    pack.request.cancel()
+                }
             }
         }
     }
@@ -211,6 +246,11 @@ public protocol RequestToken {
     var resonseEncoding: ResponseEncoding { get }
     
     static func transform(request: NSURLRequest, response: NSHTTPURLResponse?, object: SerializedType) -> Result<Response>
+}
+
+public protocol RequestTokenTimeoutInterval {
+    
+    var timeoutInterval: NSTimeInterval { get }
 }
 
 public protocol RequestTokenValidatorStatusCode {
