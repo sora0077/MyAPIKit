@@ -255,12 +255,12 @@ public protocol RequestTokenTimeoutInterval {
 
 public protocol RequestTokenValidatorStatusCode {
     
-    var statusCode: Range<Int> { get }
+    var statusCode: Set<Int> { get }
 }
 
 public protocol RequestTokenValidatorContentType {
     
-    var contentType: [String] { get }
+    var contentType: Set<String> { get }
 }
 
 private var AlamofireRequest_APIKit_requestToken: UInt8 = 0
