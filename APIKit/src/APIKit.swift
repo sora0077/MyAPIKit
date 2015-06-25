@@ -170,7 +170,7 @@ public class API {
         
         let boxed = Pack(token, request)
         
-        self.execQueue.insert(boxed)
+        execQueue.insert(boxed)
         
         request.APIKit_requestToken = boxed
         
@@ -185,28 +185,9 @@ public class API {
                 debugger.response(URLRequest, response: response!, result: result)
             }
         }
+        
         request.response(serializer: serializer) { [weak self] URLRequest, response, object, error in
-            
-            if let s = self {
-                s.execQueue.remove(boxed)
-            }
-            
-            if let error = error {
-                promise.failure(error)
-                return
-            }
-            
-            if let object = object as? T.SerializedType {
-                let serialized = T.transform(URLRequest, response: response, object: object)
-                switch serialized {
-                case let .Success(box):
-                    promise.success(box.value)
-                case let .Failure(error):
-                    promise.failure(error)
-                }
-            } else {
-                fatalError("The operation couldn’t be completed.")
-            }
+            self?.response(promise, token: token, pack: boxed, URLRequest: URLRequest, response: response, object: object, error: error)
         }
         
         return promise.future
@@ -226,6 +207,38 @@ public class API {
             }
         }
     }
+    
+    func response<T: RequestToken>(promise: Promise<T.Response>, token: T, pack: Pack, URLRequest: NSURLRequest, response: NSHTTPURLResponse?, object: AnyObject?, error: NSError?) {
+        
+        if execQueue.contains(pack) {
+            execQueue.remove(pack)
+        }
+        
+        if let error = error {
+            promise.failure(error)
+            return
+        }
+        
+        println(T.SerializedType.self, Any.self)
+        println(object, reflect(object))
+        
+        if let object = object as? T.SerializedType {
+            
+            let serialized = T.transform(URLRequest, response: response, object: object)
+            switch serialized {
+            case let .Success(box):
+                promise.success(box.value)
+            case let .Failure(error):
+                promise.failure(error)
+            }
+        } else {
+            if let object = object as? Any {
+                println("cast success")
+            }
+            fatalError("")
+        }
+    }
+    
 }
 
 /**
@@ -261,6 +274,11 @@ public protocol RequestTokenValidatorStatusCode {
 public protocol RequestTokenValidatorContentType {
     
     var contentType: Set<String> { get }
+}
+
+public protocol RequestTokenRecovery {
+ 
+    static func recovery()
 }
 
 private var AlamofireRequest_APIKit_requestToken: UInt8 = 0
