@@ -96,6 +96,12 @@ public class API {
         self.baseURL = baseURL
         if configuration.HTTPAdditionalHeaders == nil {
             configuration.HTTPAdditionalHeaders = Manager.defaultHTTPHeaders
+        } else {
+            for (k, v) in Manager.defaultHTTPHeaders {
+                if configuration.HTTPAdditionalHeaders?[k] != nil {
+                    configuration.HTTPAdditionalHeaders?[k] = v
+                }
+            }
         }
         self.manager = Manager(configuration: configuration)
         self.debugger = debugger
@@ -109,11 +115,25 @@ public class API {
 //        
 //    }
     
-    public func cancel<T: RequestToken>(clazz: T.Type) {
-        cancel(clazz, { _ in true })
+    /**
+    validate(request:response:object)
+    
+    :param: URLRequest <#URLRequest description#>
+    :param: resonse    <#resonse description#>
+    :param: object     <#object description#>
+    
+    :returns: <#return value description#>
+    */
+    public func validate(request URLRequest: NSURLRequest, response: NSHTTPURLResponse, object: AnyObject?) -> NSError? {
+        return nil
     }
     
-    public func cancel<T: RequestToken>(clazz: T.Type, _ f: T -> Bool) {
+    /**
+    cancel(_:)
+    
+    :param: clazz <#clazz description#>
+    */
+    public func cancel<T: RequestToken>(clazz: T.Type, _ f: T -> Bool = { _ in true }) {
         
         for pack in execQueue {
             if let token = pack.token as? T where f(token) {
@@ -216,6 +236,13 @@ extension API {
             return
         }
         
+        if  let response = response,
+            let error = validate(request: URLRequest, response: response, object: object)
+        {
+            promise.failure(error)
+            return
+        }
+        
         let serialized = T.transform(URLRequest, response: response, object: object as? U)
         switch serialized {
         case let .Success(box):
@@ -236,6 +263,13 @@ extension API {
             return
         }
         
+        if  let response = response,
+            let error = validate(request: URLRequest, response: response, object: object)
+        {
+            promise.failure(error)
+            return
+        }
+        
         let serialized = T.transform(URLRequest, response: response, object: object)
         switch serialized {
         case let .Success(box):
@@ -252,6 +286,13 @@ extension API {
         }
         
         if let error = error {
+            promise.failure(error)
+            return
+        }
+        
+        if  let response = response,
+            let error = validate(request: URLRequest, response: response, object: object)
+        {
             promise.failure(error)
             return
         }
