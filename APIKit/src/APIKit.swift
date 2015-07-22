@@ -9,20 +9,14 @@
 import Foundation
 import Alamofire
 import BrightFutures
+import Result
 
 public typealias HTTPMethod = Alamofire.Method
 public typealias RequestEncoding = Alamofire.ParameterEncoding
 public typealias Request = Alamofire.Request
-public typealias Result = BrightFutures.Result
+//public typealias Result = Result
 
 public let APIKitErrorDomain = "jp.sora0077.APIKit.ErrorDomain"
-
-extension Result {
-    
-    init(error: NSError) {
-        self = .Failure(error)
-    }
-}
 
 public enum ResponseEncoding {
     
@@ -77,11 +71,11 @@ func url_encode(str: String, characterSet: NSCharacterSet = .URLPathAllowedChara
 
 public protocol APIDebugger {
     
-    func response(request: NSURLRequest, response: NSHTTPURLResponse, result: Result<String!>)
+    func response(request: NSURLRequest, response: NSHTTPURLResponse, result: Result<String!, NSError>)
 }
 
 /**
-*
+* API control class
 */
 public class API {
     
@@ -106,7 +100,7 @@ public class API {
         self.manager = Manager(configuration: configuration)
         self.debugger = debugger
     }
-    
+
     public func additionalHeaders() -> [String: AnyObject]? {
         return nil
     }
@@ -127,7 +121,7 @@ public class API {
     public func validate(request URLRequest: NSURLRequest, response: NSHTTPURLResponse, object: AnyObject?) -> NSError? {
         return nil
     }
-    
+
     /**
     cancel(_:)
     
@@ -152,10 +146,10 @@ extension API {
     
     :param: token RequestToken protocol
     
-    :returns: Future<T.Response>
+    :returns: Future<T.Response, NSError>
     */
-    public final func request<T: RequestToken>(token: T) -> Future<T.Response> {
-        let promise = Promise<T.Response>()
+    public final func request<T: RequestToken>(token: T) -> Future<T.Response, NSError> {
+        let promise = Promise<T.Response, NSError>()
         
         let serializer = token.resonseEncoding.serializer
         let request = createRequest(token)
@@ -171,16 +165,16 @@ extension API {
         
         return promise.future
     }
-    
+
     /**
     request()
     
     :param: token RequestToken protocol with Optional Type
     
-    :returns: Future<T.Response>
+    :returns: Future<T.Response, NSError>
     */
-    public final func request<T: RequestToken, U where T.SerializedType == Optional<U>>(token: T) -> Future<T.Response> {
-        let promise = Promise<T.Response>()
+    public final func request<T: RequestToken, U where T.SerializedType == Optional<U>>(token: T) -> Future<T.Response, NSError> {
+        let promise = Promise<T.Response, NSError>()
         
         let serializer = token.resonseEncoding.serializer
         let request = createRequest(token)
@@ -196,16 +190,16 @@ extension API {
         
         return promise.future
     }
-    
+
     /**
     request()
     
     :param: token RequestToken protocol with Any Type
     
-    :returns: Future<T.Response>
+    :returns: Future<T.Response, NSError>
     */
-    public final func request<T: RequestToken where T.SerializedType == Any>(token: T) -> Future<T.Response> {
-        let promise = Promise<T.Response>()
+    public final func request<T: RequestToken where T.SerializedType == Any>(token: T) -> Future<T.Response, NSError> {
+        let promise = Promise<T.Response, NSError>()
         
         let serializer = token.resonseEncoding.serializer
         let request = createRequest(token)
@@ -222,10 +216,10 @@ extension API {
         return promise.future
     }
 }
-
+//
 extension API {
-    
-    final func responseNilable<T: RequestToken, U where T.SerializedType == Optional<U>>(promise: Promise<T.Response>, token: T, pack: Pack, URLRequest: NSURLRequest, response: NSHTTPURLResponse?, object: AnyObject?, error: NSError?) {
+
+    final func responseNilable<T: RequestToken, U where T.SerializedType == Optional<U>>(promise: Promise<T.Response, NSError>, token: T, pack: Pack, URLRequest: NSURLRequest, response: NSHTTPURLResponse?, object: AnyObject?, error: NSError?) {
         
         if execQueue.contains(pack) {
             execQueue.remove(pack)
@@ -247,12 +241,12 @@ extension API {
         switch serialized {
         case let .Success(box):
             promise.success(box.value)
-        case let .Failure(error):
-            promise.failure(error)
+        case let .Failure(box):
+            promise.failure(box.value)
         }
     }
-    
-    final func responseAnyable<T: RequestToken where T.SerializedType == Any>(promise: Promise<T.Response>, token: T, pack: Pack, URLRequest: NSURLRequest, response: NSHTTPURLResponse?, object: AnyObject?, error: NSError?) {
+
+    final func responseAnyable<T: RequestToken where T.SerializedType == Any>(promise: Promise<T.Response, NSError>, token: T, pack: Pack, URLRequest: NSURLRequest, response: NSHTTPURLResponse?, object: AnyObject?, error: NSError?) {
         
         if execQueue.contains(pack) {
             execQueue.remove(pack)
@@ -274,12 +268,12 @@ extension API {
         switch serialized {
         case let .Success(box):
             promise.success(box.value)
-        case let .Failure(error):
-            promise.failure(error)
+        case let .Failure(box):
+            promise.failure(box.value)
         }
     }
     
-    final func response<T: RequestToken>(promise: Promise<T.Response>, token: T, pack: Pack, URLRequest: NSURLRequest, response: NSHTTPURLResponse?, object: AnyObject?, error: NSError?) {
+    final func response<T: RequestToken>(promise: Promise<T.Response, NSError>, token: T, pack: Pack, URLRequest: NSURLRequest, response: NSHTTPURLResponse?, object: AnyObject?, error: NSError?) {
         
         if execQueue.contains(pack) {
             execQueue.remove(pack)
@@ -303,8 +297,8 @@ extension API {
             switch serialized {
             case let .Success(box):
                 promise.success(box.value)
-            case let .Failure(error):
-                promise.failure(error)
+            case let .Failure(box):
+                promise.failure(box.value)
             }
         } else {
             fatalError("")
@@ -365,11 +359,11 @@ extension API {
         
         if let debugger = debugger {
             request.responseString(encoding: NSUTF8StringEncoding) { URLRequest, response, object, error in
-                let result: Result<String!>
+                let result: Result<String!, NSError>
                 if let e = error {
                     result = Result(error: e)
                 } else {
-                    result = Result(object)
+                    result = Result(value: object)
                 }
                 debugger.response(URLRequest, response: response!, result: result)
             }
@@ -396,7 +390,7 @@ public protocol RequestToken {
     
     var resonseEncoding: ResponseEncoding { get }
     
-    static func transform(request: NSURLRequest, response: NSHTTPURLResponse?, object: SerializedType) -> Result<Response>
+    static func transform(request: NSURLRequest, response: NSHTTPURLResponse?, object: SerializedType) -> Result<Response, NSError>
 }
 
 public protocol RequestTokenTimeoutInterval {

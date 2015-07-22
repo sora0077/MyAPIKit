@@ -7,6 +7,8 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		D96BF3041B5FE91F0013EBC5 /* Box.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = D96BF3031B5FE9040013EBC5 /* Box.framework */; };
+		D96BF3051B5FE9220013EBC5 /* Result.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = D96BF3021B5FE8FA0013EBC5 /* Result.framework */; };
 		D99762051B2219C100A48209 /* APIKit.h in Headers */ = {isa = PBXBuildFile; fileRef = D99762041B2219C100A48209 /* APIKit.h */; settings = {ATTRIBUTES = (Public, ); }; };
 		D997620B1B2219C100A48209 /* APIKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = D99761FF1B2219C100A48209 /* APIKit.framework */; };
 		D99762121B2219C100A48209 /* APIKitTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = D99762111B2219C100A48209 /* APIKitTests.swift */; };
@@ -29,6 +31,8 @@
 /* End PBXContainerItemProxy section */
 
 /* Begin PBXFileReference section */
+		D96BF3021B5FE8FA0013EBC5 /* Result.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Result.framework; path = Carthage/Build/iOS/Result.framework; sourceTree = "<group>"; };
+		D96BF3031B5FE9040013EBC5 /* Box.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Box.framework; path = Carthage/Build/iOS/Box.framework; sourceTree = "<group>"; };
 		D99761FF1B2219C100A48209 /* APIKit.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = APIKit.framework; sourceTree = BUILT_PRODUCTS_DIR; };
 		D99762031B2219C100A48209 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		D99762041B2219C100A48209 /* APIKit.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = APIKit.h; sourceTree = "<group>"; };
@@ -47,6 +51,8 @@
 			files = (
 				D99762221B221B6A00A48209 /* Alamofire.framework in Frameworks */,
 				D99762241B221B6A00A48209 /* BrightFutures.framework in Frameworks */,
+				D96BF3041B5FE91F0013EBC5 /* Box.framework in Frameworks */,
+				D96BF3051B5FE9220013EBC5 /* Result.framework in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -128,6 +134,8 @@
 		D997621F1B221B5400A48209 /* Frameworks */ = {
 			isa = PBXGroup;
 			children = (
+				D96BF3031B5FE9040013EBC5 /* Box.framework */,
+				D96BF3021B5FE8FA0013EBC5 /* Result.framework */,
 				D99762201B221B6A00A48209 /* Alamofire.framework */,
 				D99762211B221B6A00A48209 /* BrightFutures.framework */,
 			);
