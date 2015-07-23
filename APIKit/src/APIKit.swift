@@ -14,7 +14,6 @@ import Result
 public typealias HTTPMethod = Alamofire.Method
 public typealias RequestEncoding = Alamofire.ParameterEncoding
 public typealias Request = Alamofire.Request
-//public typealias Result = Result
 
 public let APIKitErrorDomain = "jp.sora0077.APIKit.ErrorDomain"
 
@@ -77,7 +76,7 @@ public protocol APIDebugger {
 /**
 * API control class
 */
-public class API {
+public class API<E: ErrorType> {
     
     private var execQueue: Set<Pack> = []
     private let manager: Alamofire.Manager
@@ -219,86 +218,86 @@ extension API {
 //
 extension API {
 
-    final func responseNilable<T: RequestToken, U where T.SerializedType == Optional<U>>(promise: Promise<T.Response, NSError>, token: T, pack: Pack, URLRequest: NSURLRequest, response: NSHTTPURLResponse?, object: AnyObject?, error: NSError?) {
+    final func responseNilable<T: RequestToken, U where T.SerializedType == Optional<U>>(promise: Promise<T.Response, NSError>, token: T, pack: Pack, URLRequest: NSURLRequest?, response: NSHTTPURLResponse?, object: AnyObject?, error: NSError?) {
         
         if execQueue.contains(pack) {
             execQueue.remove(pack)
         }
         
         if let error = error {
-            promise.failure(error)
+            try! promise.failure(error)
             return
         }
         
         if  let response = response,
-            let error = validate(request: URLRequest, response: response, object: object)
+            let error = validate(request: URLRequest!, response: response, object: object)
         {
-            promise.failure(error)
+            try! promise.failure(error)
             return
         }
         
-        let serialized = T.transform(URLRequest, response: response, object: object as? U)
+        let serialized = T.transform(URLRequest!, response: response, object: object as? U)
         switch serialized {
-        case let .Success(box):
-            promise.success(box.value)
-        case let .Failure(box):
-            promise.failure(box.value)
+        case let .Success(value):
+            try! promise.success(value)
+        case let .Failure(value):
+            try! promise.failure(value)
         }
     }
 
-    final func responseAnyable<T: RequestToken where T.SerializedType == Any>(promise: Promise<T.Response, NSError>, token: T, pack: Pack, URLRequest: NSURLRequest, response: NSHTTPURLResponse?, object: AnyObject?, error: NSError?) {
+    final func responseAnyable<T: RequestToken where T.SerializedType == Any>(promise: Promise<T.Response, NSError>, token: T, pack: Pack, URLRequest: NSURLRequest?, response: NSHTTPURLResponse?, object: AnyObject?, error: NSError?) {
         
         if execQueue.contains(pack) {
             execQueue.remove(pack)
         }
         
         if let error = error {
-            promise.failure(error)
+            try! promise.failure(error)
             return
         }
         
         if  let response = response,
-            let error = validate(request: URLRequest, response: response, object: object)
+            let error = validate(request: URLRequest!, response: response, object: object)
         {
-            promise.failure(error)
+            try! promise.failure(error)
             return
         }
         
-        let serialized = T.transform(URLRequest, response: response, object: object)
+        let serialized = T.transform(URLRequest!, response: response, object: object)
         switch serialized {
-        case let .Success(box):
-            promise.success(box.value)
-        case let .Failure(box):
-            promise.failure(box.value)
+        case let .Success(value):
+            try! promise.success(value)
+        case let .Failure(value):
+            try! promise.failure(value)
         }
     }
     
-    final func response<T: RequestToken>(promise: Promise<T.Response, NSError>, token: T, pack: Pack, URLRequest: NSURLRequest, response: NSHTTPURLResponse?, object: AnyObject?, error: NSError?) {
+    final func response<T: RequestToken>(promise: Promise<T.Response, NSError>, token: T, pack: Pack, URLRequest: NSURLRequest?, response: NSHTTPURLResponse?, object: AnyObject?, error: NSError?) {
         
         if execQueue.contains(pack) {
             execQueue.remove(pack)
         }
         
         if let error = error {
-            promise.failure(error)
+            try! promise.failure(error)
             return
         }
         
         if  let response = response,
-            let error = validate(request: URLRequest, response: response, object: object)
+            let error = validate(request: URLRequest!, response: response, object: object)
         {
-            promise.failure(error)
+            try! promise.failure(error)
             return
         }
         
         if let object = object as? T.SerializedType {
             
-            let serialized = T.transform(URLRequest, response: response, object: object)
+            let serialized = T.transform(URLRequest!, response: response, object: object)
             switch serialized {
-            case let .Success(box):
-                promise.success(box.value)
-            case let .Failure(box):
-                promise.failure(box.value)
+            case let .Success(value):
+                try! promise.success(value)
+            case let .Failure(value):
+                try! promise.failure(value)
             }
         } else {
             fatalError("")
@@ -313,10 +312,10 @@ extension API {
         
         func encodedUrl(str: String) -> String {
             if str.hasPrefix("http") {
-                var vs = split(str, maxSplit: 2, allowEmptySlices: true, isSeparator: { $0 == "/" })
+                var vs = split(str.characters, maxSplit: 2, allowEmptySlices: true, isSeparator: { $0 == "/" }).map(String.init)
                 let last = vs.count - 1
                 vs[last] = url_encode(vs[last])
-                return join("/", vs)
+                return "/".join(vs)
             }
             
             return self.baseURL + url_encode(str)
@@ -365,7 +364,7 @@ extension API {
                 } else {
                     result = Result(value: object)
                 }
-                debugger.response(URLRequest, response: response!, result: result)
+                debugger.response(URLRequest!, response: response!, result: result)
             }
         }
         
@@ -422,7 +421,7 @@ private extension Alamofire.Request {
             return objc_getAssociatedObject(self, &AlamofireRequest_APIKit_requestToken)
         }
         set {
-            objc_setAssociatedObject(self, &AlamofireRequest_APIKit_requestToken, newValue, objc_AssociationPolicy(OBJC_ASSOCIATION_RETAIN_NONATOMIC))
+            objc_setAssociatedObject(self, &AlamofireRequest_APIKit_requestToken, newValue, .OBJC_ASSOCIATION_RETAIN_NONATOMIC)
         }
     }
     
