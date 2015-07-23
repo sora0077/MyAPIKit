@@ -76,7 +76,7 @@ public protocol APIDebugger {
 /**
 * API control class
 */
-public class API<E: ErrorType> {
+public class API {
     
     private var execQueue: Set<Pack> = []
     private let manager: Alamofire.Manager
@@ -340,8 +340,8 @@ extension API {
                 }
             }
 //            self.updateURLRequest(URLRequest)
-            if let token = token as? RequestTokenTimeoutInterval {
-                URLRequest.timeoutInterval = token.timeoutInterval
+            if let timeoutInterval = token.timeoutInterval {
+                URLRequest.timeoutInterval = timeoutInterval
             }
             return URLRequest
             }(),
@@ -349,11 +349,11 @@ extension API {
         
         let request = manager.request(URLRequest)
         
-        if let token = token as? RequestTokenValidatorStatusCode {
-            request.validate(statusCode: token.statusCode)
+        if let statusCode = token.statusCode {
+            request.validate(statusCode: statusCode)
         }
-        if let token = token as? RequestTokenValidatorContentType {
-            request.validate(contentType: token.contentType)
+        if let contentType = token.contentType {
+            request.validate(contentType: contentType)
         }
         
         if let debugger = debugger {
@@ -389,28 +389,42 @@ public protocol RequestToken {
     
     var resonseEncoding: ResponseEncoding { get }
     
+    
+    var timeoutInterval: NSTimeInterval? { get }
+    
+    var statusCode: Set<Int>? { get }
+    var contentType: Set<String>? { get }
+    
     static func transform(request: NSURLRequest, response: NSHTTPURLResponse?, object: SerializedType) -> Result<Response, NSError>
 }
 
-public protocol RequestTokenTimeoutInterval {
+extension RequestToken {
     
-    var timeoutInterval: NSTimeInterval { get }
+    var headers: [String: AnyObject]? {
+        return nil
+    }
+    
+    var parameters: [String: AnyObject]? {
+        return nil
+    }
+    
+    var encoding: RequestEncoding {
+        return .URL
+    }
+    
+    var timeoutInterval: NSTimeInterval? {
+        return nil
+    }
+    
+    var statusCode: Set<Int>? {
+        return nil
+    }
+    
+    var contentType: Set<String>? {
+        return nil
+    }
 }
 
-public protocol RequestTokenValidatorStatusCode {
-    
-    var statusCode: Set<Int> { get }
-}
-
-public protocol RequestTokenValidatorContentType {
-    
-    var contentType: Set<String> { get }
-}
-
-//public protocol RequestTokenRecovery {
-//
-//    static func recovery()
-//}
 
 private var AlamofireRequest_APIKit_requestToken: UInt8 = 0
 private extension Alamofire.Request {
