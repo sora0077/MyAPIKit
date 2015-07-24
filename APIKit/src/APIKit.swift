@@ -414,7 +414,7 @@ public protocol RequestToken {
     static func transform(request: NSURLRequest, response: NSHTTPURLResponse?, object: SerializedType) throws -> Response
 }
 
-extension RequestToken {
+public extension RequestToken {
     
     var headers: [String: AnyObject]? {
         return nil
@@ -438,6 +438,50 @@ extension RequestToken {
     
     var contentType: Set<String>? {
         return nil
+    }
+}
+
+//MARK:
+public extension RequestToken where SerializedType == [String: AnyObject] {
+    
+    var responseEncoding: ResponseEncoding {
+        return .JSON(.AllowFragments)
+    }
+}
+
+public extension RequestToken where SerializedType == [String: AnyObject]? {
+    
+    var responseEncoding: ResponseEncoding {
+        return .JSON(.AllowFragments)
+    }
+}
+
+public extension RequestToken where SerializedType == [String: AnyObject]! {
+    
+    var responseEncoding: ResponseEncoding {
+        return .JSON(.AllowFragments)
+    }
+}
+
+//MARK:
+public extension RequestToken where SerializedType == [AnyObject] {
+    
+    var responseEncoding: ResponseEncoding {
+        return .JSON(.AllowFragments)
+    }
+}
+
+public extension RequestToken where SerializedType == [AnyObject]? {
+    
+    var responseEncoding: ResponseEncoding {
+        return .JSON(.AllowFragments)
+    }
+}
+
+public extension RequestToken where SerializedType == [AnyObject]! {
+    
+    var responseEncoding: ResponseEncoding {
+        return .JSON(.AllowFragments)
     }
 }
 
