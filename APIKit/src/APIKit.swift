@@ -38,9 +38,6 @@ public enum ResponseEncoding {
     }
 }
 
-/**
-*
-*/
 final class Pack {
     let token: Any
     let request: Request
@@ -74,9 +71,19 @@ public protocol APIDebugger {
 }
 
 /**
+* ErrorType for APIKit
+*/
+public enum APIKitError<E: ErrorType>: ErrorType {
+    case AlamofireError(NSError)
+    case SerializedError(E)
+    case ValidationError(E)
+    case UnknownError
+}
+
+/**
 * API control class
 */
-public class API {
+public class API<Error: ErrorType> {
     
     private var execQueue: Set<Pack> = []
     private let manager: Alamofire.Manager
@@ -117,7 +124,7 @@ public class API {
     
     :returns: <#return value description#>
     */
-    public func validate(request URLRequest: NSURLRequest, response: NSHTTPURLResponse, object: AnyObject?) -> NSError? {
+    public func validate(request URLRequest: NSURLRequest, response: NSHTTPURLResponse, object: AnyObject?) -> APIKitError<Error>? {
         return nil
     }
 
@@ -145,10 +152,10 @@ extension API {
     
     :param: token RequestToken protocol
     
-    :returns: Future<T.Response, NSError>
+    :returns: Future<T.Response, APIKitError<Error>>
     */
-    public final func request<T: RequestToken>(token: T) -> Future<T.Response, NSError> {
-        let promise = Promise<T.Response, NSError>()
+    public final func request<T: RequestToken>(token: T) -> Future<T.Response, APIKitError<Error>> {
+        let promise = Promise<T.Response, APIKitError<Error>>()
         
         let serializer = token.resonseEncoding.serializer
         let request = createRequest(token)
@@ -170,10 +177,10 @@ extension API {
     
     :param: token RequestToken protocol with Optional Type
     
-    :returns: Future<T.Response, NSError>
+    :returns: Future<T.Response, APIKitError<Error>>
     */
-    public final func request<T: RequestToken, U where T.SerializedType == Optional<U>>(token: T) -> Future<T.Response, NSError> {
-        let promise = Promise<T.Response, NSError>()
+    public final func request<T: RequestToken, U where T.SerializedType == Optional<U>>(token: T) -> Future<T.Response, APIKitError<Error>> {
+        let promise = Promise<T.Response, APIKitError<Error>>()
         
         let serializer = token.resonseEncoding.serializer
         let request = createRequest(token)
@@ -195,10 +202,10 @@ extension API {
     
     :param: token RequestToken protocol with Any Type
     
-    :returns: Future<T.Response, NSError>
+    :returns: Future<T.Response, APIKitError<Error>>
     */
-    public final func request<T: RequestToken where T.SerializedType == Any>(token: T) -> Future<T.Response, NSError> {
-        let promise = Promise<T.Response, NSError>()
+    public final func request<T: RequestToken where T.SerializedType == Any>(token: T) -> Future<T.Response, APIKitError<Error>> {
+        let promise = Promise<T.Response, APIKitError<Error>>()
         
         let serializer = token.resonseEncoding.serializer
         let request = createRequest(token)
@@ -218,14 +225,14 @@ extension API {
 //
 extension API {
 
-    final func responseNilable<T: RequestToken, U where T.SerializedType == Optional<U>>(promise: Promise<T.Response, NSError>, token: T, pack: Pack, URLRequest: NSURLRequest?, response: NSHTTPURLResponse?, object: AnyObject?, error: NSError?) {
+    final func responseNilable<T: RequestToken, U where T.SerializedType == Optional<U>>(promise: Promise<T.Response, APIKitError<Error>>, token: T, pack: Pack, URLRequest: NSURLRequest?, response: NSHTTPURLResponse?, object: AnyObject?, error: NSError?) {
         
         if execQueue.contains(pack) {
             execQueue.remove(pack)
         }
         
         if let error = error {
-            try! promise.failure(error)
+            try! promise.failure(.AlamofireError(error))
             return
         }
         
@@ -236,23 +243,26 @@ extension API {
             return
         }
         
-        let serialized = T.transform(URLRequest!, response: response, object: object as? U)
-        switch serialized {
-        case let .Success(value):
-            try! promise.success(value)
-        case let .Failure(value):
-            try! promise.failure(value)
+        do {
+            let serialized = try T.transform(URLRequest!, response: response, object: object as? U)
+            try! promise.success(serialized)
+        }
+        catch let error as Error {
+            try! promise.failure(.SerializedError(error))
+        }
+        catch {
+            try! promise.failure(.UnknownError)
         }
     }
 
-    final func responseAnyable<T: RequestToken where T.SerializedType == Any>(promise: Promise<T.Response, NSError>, token: T, pack: Pack, URLRequest: NSURLRequest?, response: NSHTTPURLResponse?, object: AnyObject?, error: NSError?) {
+    final func responseAnyable<T: RequestToken where T.SerializedType == Any>(promise: Promise<T.Response, APIKitError<Error>>, token: T, pack: Pack, URLRequest: NSURLRequest?, response: NSHTTPURLResponse?, object: AnyObject?, error: NSError?) {
         
         if execQueue.contains(pack) {
             execQueue.remove(pack)
         }
         
         if let error = error {
-            try! promise.failure(error)
+            try! promise.failure(.AlamofireError(error))
             return
         }
         
@@ -263,23 +273,26 @@ extension API {
             return
         }
         
-        let serialized = T.transform(URLRequest!, response: response, object: object)
-        switch serialized {
-        case let .Success(value):
-            try! promise.success(value)
-        case let .Failure(value):
-            try! promise.failure(value)
+        do {
+            let serialized = try T.transform(URLRequest!, response: response, object: object)
+            try! promise.success(serialized)
+        }
+        catch let error as Error {
+            try! promise.failure(.SerializedError(error))
+        }
+        catch {
+            try! promise.failure(.UnknownError)
         }
     }
     
-    final func response<T: RequestToken>(promise: Promise<T.Response, NSError>, token: T, pack: Pack, URLRequest: NSURLRequest?, response: NSHTTPURLResponse?, object: AnyObject?, error: NSError?) {
+    final func response<T: RequestToken>(promise: Promise<T.Response, APIKitError<Error>>, token: T, pack: Pack, URLRequest: NSURLRequest?, response: NSHTTPURLResponse?, object: AnyObject?, error: NSError?) {
         
         if execQueue.contains(pack) {
             execQueue.remove(pack)
         }
         
         if let error = error {
-            try! promise.failure(error)
+            try! promise.failure(.AlamofireError(error))
             return
         }
         
@@ -292,12 +305,15 @@ extension API {
         
         if let object = object as? T.SerializedType {
             
-            let serialized = T.transform(URLRequest!, response: response, object: object)
-            switch serialized {
-            case let .Success(value):
-                try! promise.success(value)
-            case let .Failure(value):
-                try! promise.failure(value)
+            do {
+                let serialized = try T.transform(URLRequest!, response: response, object: object)
+                try! promise.success(serialized)
+            }
+            catch let error as Error {
+                try! promise.failure(.SerializedError(error))
+            }
+            catch {
+                try! promise.failure(.UnknownError)
             }
         } else {
             fatalError("")
@@ -395,7 +411,7 @@ public protocol RequestToken {
     var statusCode: Set<Int>? { get }
     var contentType: Set<String>? { get }
     
-    static func transform(request: NSURLRequest, response: NSHTTPURLResponse?, object: SerializedType) -> Result<Response, NSError>
+    static func transform(request: NSURLRequest, response: NSHTTPURLResponse?, object: SerializedType) throws -> Response
 }
 
 extension RequestToken {
