@@ -17,73 +17,23 @@ public typealias Request = Alamofire.Request
 
 public let APIKitErrorDomain = "jp.sora0077.APIKit.ErrorDomain"
 
-public enum ResponseEncoding {
-    
-    case Data
-    case String(NSStringEncoding?)
-    case JSON(NSJSONReadingOptions)
-    case Custom(Request.Serializer)
-    
-    var serializer: Request.Serializer {
-        switch self {
-        case .Data:
-            return Request.responseDataSerializer()
-        case let .String(encoding):
-            return Request.stringResponseSerializer(encoding: encoding)
-        case let .JSON(options):
-            return Request.JSONResponseSerializer(options: options)
-        case let .Custom(serializer):
-            return serializer
-        }
-    }
-}
-
-final class Pack {
-    let token: Any
-    let request: Request
-    let uuid: NSUUID
-    
-    init(_ token: Any, _ request: Request) {
-        self.token = token
-        self.request = request
-        self.uuid = NSUUID()
-    }
-}
-
-extension Pack: Hashable {
-    
-    var hashValue: Int {
-        return uuid.hashValue
-    }
-}
-
-func ==(lhs: Pack, rhs: Pack) -> Bool {
-    return lhs.uuid == rhs.uuid
-}
-
-func url_encode(str: String, characterSet: NSCharacterSet = .URLPathAllowedCharacterSet()) -> String {
-    return str.stringByAddingPercentEncodingWithAllowedCharacters(characterSet)!
-}
-
-public protocol APIDebugger {
-    
-    func response(request: NSURLRequest, response: NSHTTPURLResponse, result: Result<String!, NSError>)
-}
-
 /**
 * ErrorType for APIKit
 */
-public enum APIKitError<E: ErrorType>: ErrorType {
-    case AlamofireError(NSError)
-    case SerializedError(E)
-    case ValidationError(E)
-    case UnknownError
+public protocol APIKitErrorType: ErrorType {
+    
+    static func NetworkError(error: ErrorType) -> Self
+    
+    static func SerializeError(error: ErrorType) -> Self
+    
+    static func ValidationError(error: ErrorType) -> Self
 }
+
 
 /**
 * API control class
 */
-public class API<Error: ErrorType> {
+public class API<Error: APIKitErrorType> {
     
     private var execQueue: Set<Pack> = []
     private let manager: Alamofire.Manager
@@ -124,7 +74,7 @@ public class API<Error: ErrorType> {
     
     :returns: <#return value description#>
     */
-    public func validate(request URLRequest: NSURLRequest, response: NSHTTPURLResponse, object: AnyObject?) -> APIKitError<Error>? {
+    public func validate(request URLRequest: NSURLRequest, response: NSHTTPURLResponse, object: AnyObject?) -> Error? {
         return nil
     }
 
@@ -154,8 +104,8 @@ extension API {
     
     :returns: Future<T.Response, APIKitError<Error>>
     */
-    public final func request<T: RequestToken>(token: T) -> Future<T.Response, APIKitError<Error>> {
-        let promise = Promise<T.Response, APIKitError<Error>>()
+    public final func request<T: RequestToken>(token: T) -> Future<T.Response, Error> {
+        let promise = Promise<T.Response, Error>()
         
         let serializer = token.resonseEncoding.serializer
         let request = createRequest(token)
@@ -179,8 +129,8 @@ extension API {
     
     :returns: Future<T.Response, APIKitError<Error>>
     */
-    public final func request<T: RequestToken, U where T.SerializedType == Optional<U>>(token: T) -> Future<T.Response, APIKitError<Error>> {
-        let promise = Promise<T.Response, APIKitError<Error>>()
+    public final func request<T: RequestToken, U where T.SerializedType == Optional<U>>(token: T) -> Future<T.Response, Error> {
+        let promise = Promise<T.Response, Error>()
         
         let serializer = token.resonseEncoding.serializer
         let request = createRequest(token)
@@ -204,8 +154,8 @@ extension API {
     
     :returns: Future<T.Response, APIKitError<Error>>
     */
-    public final func request<T: RequestToken where T.SerializedType == Any>(token: T) -> Future<T.Response, APIKitError<Error>> {
-        let promise = Promise<T.Response, APIKitError<Error>>()
+    public final func request<T: RequestToken where T.SerializedType == Any>(token: T) -> Future<T.Response, Error> {
+        let promise = Promise<T.Response, Error>()
         
         let serializer = token.resonseEncoding.serializer
         let request = createRequest(token)
@@ -222,17 +172,18 @@ extension API {
         return promise.future
     }
 }
+
 //
 extension API {
 
-    final func responseNilable<T: RequestToken, U where T.SerializedType == Optional<U>>(promise: Promise<T.Response, APIKitError<Error>>, token: T, pack: Pack, URLRequest: NSURLRequest?, response: NSHTTPURLResponse?, object: AnyObject?, error: NSError?) {
+    final func responseNilable<T: RequestToken, U where T.SerializedType == Optional<U>>(promise: Promise<T.Response, Error>, token: T, pack: Pack, URLRequest: NSURLRequest?, response: NSHTTPURLResponse?, object: AnyObject?, error: NSError?) {
         
         if execQueue.contains(pack) {
             execQueue.remove(pack)
         }
         
         if let error = error {
-            try! promise.failure(.AlamofireError(error))
+            try! promise.failure(.NetworkError(error))
             return
         }
         
@@ -247,22 +198,19 @@ extension API {
             let serialized = try T.transform(URLRequest!, response: response, object: object as? U)
             try! promise.success(serialized)
         }
-        catch let error as Error {
-            try! promise.failure(.SerializedError(error))
-        }
-        catch {
-            try! promise.failure(.UnknownError)
+        catch let error {
+            try! promise.failure(.SerializeError(error))
         }
     }
 
-    final func responseAnyable<T: RequestToken where T.SerializedType == Any>(promise: Promise<T.Response, APIKitError<Error>>, token: T, pack: Pack, URLRequest: NSURLRequest?, response: NSHTTPURLResponse?, object: AnyObject?, error: NSError?) {
+    final func responseAnyable<T: RequestToken where T.SerializedType == Any>(promise: Promise<T.Response, Error>, token: T, pack: Pack, URLRequest: NSURLRequest?, response: NSHTTPURLResponse?, object: AnyObject?, error: NSError?) {
         
         if execQueue.contains(pack) {
             execQueue.remove(pack)
         }
         
         if let error = error {
-            try! promise.failure(.AlamofireError(error))
+            try! promise.failure(.NetworkError(error))
             return
         }
         
@@ -277,22 +225,19 @@ extension API {
             let serialized = try T.transform(URLRequest!, response: response, object: object)
             try! promise.success(serialized)
         }
-        catch let error as Error {
-            try! promise.failure(.SerializedError(error))
-        }
-        catch {
-            try! promise.failure(.UnknownError)
+        catch let error {
+            try! promise.failure(.SerializeError(error))
         }
     }
     
-    final func response<T: RequestToken>(promise: Promise<T.Response, APIKitError<Error>>, token: T, pack: Pack, URLRequest: NSURLRequest?, response: NSHTTPURLResponse?, object: AnyObject?, error: NSError?) {
+    final func response<T: RequestToken>(promise: Promise<T.Response, Error>, token: T, pack: Pack, URLRequest: NSURLRequest?, response: NSHTTPURLResponse?, object: AnyObject?, error: NSError?) {
         
         if execQueue.contains(pack) {
             execQueue.remove(pack)
         }
         
         if let error = error {
-            try! promise.failure(.AlamofireError(error))
+            try! promise.failure(.NetworkError(error))
             return
         }
         
@@ -303,20 +248,12 @@ extension API {
             return
         }
         
-        if let object = object as? T.SerializedType {
-            
-            do {
-                let serialized = try T.transform(URLRequest!, response: response, object: object)
-                try! promise.success(serialized)
-            }
-            catch let error as Error {
-                try! promise.failure(.SerializedError(error))
-            }
-            catch {
-                try! promise.failure(.UnknownError)
-            }
-        } else {
-            fatalError("")
+        do {
+            let serialized = try T.transform(URLRequest!, response: response, object: object as! T.SerializedType)
+            try! promise.success(serialized)
+        }
+        catch let error {
+            try! promise.failure(.SerializeError(error))
         }
     }
 }
@@ -388,102 +325,6 @@ extension API {
     }
 }
 
-/**
-*  各APIを表現するためのプロトコル定義
-*/
-public protocol RequestToken {
-    
-    typealias Response
-    typealias SerializedType
-    
-    var method: HTTPMethod { get }
-    
-    var URL: String { get }
-    var headers: [String: AnyObject]? { get }
-    var parameters: [String: AnyObject]? { get }
-    var encoding: RequestEncoding { get }
-    
-    var resonseEncoding: ResponseEncoding { get }
-    
-    
-    var timeoutInterval: NSTimeInterval? { get }
-    
-    var statusCode: Set<Int>? { get }
-    var contentType: Set<String>? { get }
-    
-    static func transform(request: NSURLRequest, response: NSHTTPURLResponse?, object: SerializedType) throws -> Response
-}
-
-public extension RequestToken {
-    
-    var headers: [String: AnyObject]? {
-        return nil
-    }
-    
-    var parameters: [String: AnyObject]? {
-        return nil
-    }
-    
-    var encoding: RequestEncoding {
-        return .URL
-    }
-    
-    var timeoutInterval: NSTimeInterval? {
-        return nil
-    }
-    
-    var statusCode: Set<Int>? {
-        return nil
-    }
-    
-    var contentType: Set<String>? {
-        return nil
-    }
-}
-
-//MARK:
-public extension RequestToken where SerializedType == [String: AnyObject] {
-    
-    var responseEncoding: ResponseEncoding {
-        return .JSON(.AllowFragments)
-    }
-}
-
-public extension RequestToken where SerializedType == [String: AnyObject]? {
-    
-    var responseEncoding: ResponseEncoding {
-        return .JSON(.AllowFragments)
-    }
-}
-
-public extension RequestToken where SerializedType == [String: AnyObject]! {
-    
-    var responseEncoding: ResponseEncoding {
-        return .JSON(.AllowFragments)
-    }
-}
-
-//MARK:
-public extension RequestToken where SerializedType == [AnyObject] {
-    
-    var responseEncoding: ResponseEncoding {
-        return .JSON(.AllowFragments)
-    }
-}
-
-public extension RequestToken where SerializedType == [AnyObject]? {
-    
-    var responseEncoding: ResponseEncoding {
-        return .JSON(.AllowFragments)
-    }
-}
-
-public extension RequestToken where SerializedType == [AnyObject]! {
-    
-    var responseEncoding: ResponseEncoding {
-        return .JSON(.AllowFragments)
-    }
-}
 
 
 private var AlamofireRequest_APIKit_requestToken: UInt8 = 0

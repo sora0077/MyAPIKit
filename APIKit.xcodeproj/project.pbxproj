@@ -8,11 +8,14 @@
 
 /* Begin PBXBuildFile section */
 		D96BF3051B5FE9220013EBC5 /* Result.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = D96BF3021B5FE8FA0013EBC5 /* Result.framework */; };
+		D994E9C11B62A45800F10B9E /* RequestToken+ResponseEncoding.swift in Sources */ = {isa = PBXBuildFile; fileRef = D994E9C01B62A45800F10B9E /* RequestToken+ResponseEncoding.swift */; };
+		D994E9C31B62A47D00F10B9E /* RequestToken+extension.swift in Sources */ = {isa = PBXBuildFile; fileRef = D994E9C21B62A47D00F10B9E /* RequestToken+extension.swift */; };
+		D994E9C51B63C1C600F10B9E /* RequestToken.swift in Sources */ = {isa = PBXBuildFile; fileRef = D994E9C41B63C1C600F10B9E /* RequestToken.swift */; };
+		D994E9C71B63C2AC00F10B9E /* Utility.swift in Sources */ = {isa = PBXBuildFile; fileRef = D994E9C61B63C2AC00F10B9E /* Utility.swift */; };
 		D99762051B2219C100A48209 /* APIKit.h in Headers */ = {isa = PBXBuildFile; fileRef = D99762041B2219C100A48209 /* APIKit.h */; settings = {ATTRIBUTES = (Public, ); }; };
 		D997620B1B2219C100A48209 /* APIKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = D99761FF1B2219C100A48209 /* APIKit.framework */; };
 		D99762121B2219C100A48209 /* APIKitTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = D99762111B2219C100A48209 /* APIKitTests.swift */; };
 		D997621D1B221B0C00A48209 /* APIKit.swift in Sources */ = {isa = PBXBuildFile; fileRef = D997621C1B221B0C00A48209 /* APIKit.swift */; };
-		D997621E1B221B0C00A48209 /* APIKit.swift in Sources */ = {isa = PBXBuildFile; fileRef = D997621C1B221B0C00A48209 /* APIKit.swift */; };
 		D99762221B221B6A00A48209 /* Alamofire.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = D99762201B221B6A00A48209 /* Alamofire.framework */; };
 		D99762231B221B6A00A48209 /* Alamofire.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = D99762201B221B6A00A48209 /* Alamofire.framework */; };
 		D99762241B221B6A00A48209 /* BrightFutures.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = D99762211B221B6A00A48209 /* BrightFutures.framework */; };
@@ -31,6 +34,10 @@
 
 /* Begin PBXFileReference section */
 		D96BF3021B5FE8FA0013EBC5 /* Result.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Result.framework; path = Carthage/Build/iOS/Result.framework; sourceTree = "<group>"; };
+		D994E9C01B62A45800F10B9E /* RequestToken+ResponseEncoding.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = "RequestToken+ResponseEncoding.swift"; sourceTree = "<group>"; };
+		D994E9C21B62A47D00F10B9E /* RequestToken+extension.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = "RequestToken+extension.swift"; sourceTree = "<group>"; };
+		D994E9C41B63C1C600F10B9E /* RequestToken.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = RequestToken.swift; sourceTree = "<group>"; };
+		D994E9C61B63C2AC00F10B9E /* Utility.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Utility.swift; sourceTree = "<group>"; };
 		D99761FF1B2219C100A48209 /* APIKit.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = APIKit.framework; sourceTree = BUILT_PRODUCTS_DIR; };
 		D99762031B2219C100A48209 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		D99762041B2219C100A48209 /* APIKit.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = APIKit.h; sourceTree = "<group>"; };
@@ -124,6 +131,10 @@
 			isa = PBXGroup;
 			children = (
 				D997621C1B221B0C00A48209 /* APIKit.swift */,
+				D994E9C41B63C1C600F10B9E /* RequestToken.swift */,
+				D994E9C21B62A47D00F10B9E /* RequestToken+extension.swift */,
+				D994E9C01B62A45800F10B9E /* RequestToken+ResponseEncoding.swift */,
+				D994E9C61B63C2AC00F10B9E /* Utility.swift */,
 			);
 			path = src;
 			sourceTree = "<group>";
@@ -246,7 +257,11 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				D994E9C71B63C2AC00F10B9E /* Utility.swift in Sources */,
 				D997621D1B221B0C00A48209 /* APIKit.swift in Sources */,
+				D994E9C31B62A47D00F10B9E /* RequestToken+extension.swift in Sources */,
+				D994E9C11B62A45800F10B9E /* RequestToken+ResponseEncoding.swift in Sources */,
+				D994E9C51B63C1C600F10B9E /* RequestToken.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -255,7 +270,6 @@
 			buildActionMask = 2147483647;
 			files = (
 				D99762121B2219C100A48209 /* APIKitTests.swift in Sources */,
-				D997621E1B221B0C00A48209 /* APIKit.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
