@@ -23,7 +23,7 @@ public protocol RequestToken {
     var parameters: [String: AnyObject]? { get }
     var encoding: RequestEncoding { get }
     
-    var resonseEncoding: ResponseEncoding { get }
+    var responseEncoding: ResponseEncoding { get }
     
     
     var timeoutInterval: NSTimeInterval? { get }

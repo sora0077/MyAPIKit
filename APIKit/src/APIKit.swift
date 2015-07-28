@@ -107,7 +107,7 @@ extension API {
     public final func request<T: RequestToken>(token: T) -> Future<T.Response, Error> {
         let promise = Promise<T.Response, Error>()
         
-        let serializer = token.resonseEncoding.serializer
+        let serializer = token.responseEncoding.serializer
         let request = createRequest(token)
         let boxed = Pack(token, request)
         
@@ -129,10 +129,10 @@ extension API {
     
     :returns: Future<T.Response, APIKitError<Error>>
     */
-    public final func request<T: RequestToken, U where T.SerializedType == Optional<U>>(token: T) -> Future<T.Response, Error> {
+    public final func request<T: RequestToken, U where T.SerializedType == U?>(token: T) -> Future<T.Response, Error> {
         let promise = Promise<T.Response, Error>()
         
-        let serializer = token.resonseEncoding.serializer
+        let serializer = token.responseEncoding.serializer
         let request = createRequest(token)
         let boxed = Pack(token, request)
         
@@ -157,7 +157,7 @@ extension API {
     public final func request<T: RequestToken where T.SerializedType == Any>(token: T) -> Future<T.Response, Error> {
         let promise = Promise<T.Response, Error>()
         
-        let serializer = token.resonseEncoding.serializer
+        let serializer = token.responseEncoding.serializer
         let request = createRequest(token)
         let boxed = Pack(token, request)
         
