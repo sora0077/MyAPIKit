@@ -22,11 +22,11 @@ public let APIKitErrorDomain = "jp.sora0077.APIKit.ErrorDomain"
 */
 public protocol APIKitErrorType: ErrorType {
     
-    static func NetworkError(error: ErrorType) -> Self
+    static func networkError(error: ErrorType) -> Self
     
-    static func SerializeError(error: ErrorType) -> Self
+    static func serializeError(error: ErrorType) -> Self
     
-    static func ValidationError(error: ErrorType) -> Self
+    static func validationError(error: ErrorType) -> Self
 }
 
 
@@ -176,14 +176,14 @@ extension API {
 //
 extension API {
 
-    final func responseNilable<T: RequestToken, U where T.SerializedType == Optional<U>>(promise: Promise<T.Response, Error>, token: T, pack: Pack, URLRequest: NSURLRequest?, response: NSHTTPURLResponse?, object: AnyObject?, error: NSError?) {
+    final func responseNilable<T: RequestToken, U where T.SerializedType == U?>(promise: Promise<T.Response, Error>, token: T, pack: Pack, URLRequest: NSURLRequest?, response: NSHTTPURLResponse?, object: AnyObject?, error: NSError?) {
         
         if execQueue.contains(pack) {
             execQueue.remove(pack)
         }
         
         if let error = error {
-            try! promise.failure(.NetworkError(error))
+            try! promise.failure(.networkError(error))
             return
         }
         
@@ -199,7 +199,7 @@ extension API {
             try! promise.success(serialized)
         }
         catch let error {
-            try! promise.failure(.SerializeError(error))
+            try! promise.failure(.serializeError(error))
         }
     }
 
@@ -210,7 +210,7 @@ extension API {
         }
         
         if let error = error {
-            try! promise.failure(.NetworkError(error))
+            try! promise.failure(.networkError(error))
             return
         }
         
@@ -226,7 +226,7 @@ extension API {
             try! promise.success(serialized)
         }
         catch let error {
-            try! promise.failure(.SerializeError(error))
+            try! promise.failure(.serializeError(error))
         }
     }
     
@@ -237,7 +237,7 @@ extension API {
         }
         
         if let error = error {
-            try! promise.failure(.NetworkError(error))
+            try! promise.failure(.networkError(error))
             return
         }
         
@@ -253,7 +253,7 @@ extension API {
             try! promise.success(serialized)
         }
         catch let error {
-            try! promise.failure(.SerializeError(error))
+            try! promise.failure(.serializeError(error))
         }
     }
 }

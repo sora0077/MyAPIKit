@@ -10,6 +10,28 @@ import Foundation
 
 
 //MARK:
+public extension RequestToken where SerializedType == Any {
+    
+    var responseEncoding: ResponseEncoding {
+        return .Data
+    }
+}
+
+public extension RequestToken where SerializedType == Any? {
+    
+    var responseEncoding: ResponseEncoding {
+        return .Data
+    }
+}
+
+public extension RequestToken where SerializedType == Any! {
+    
+    var responseEncoding: ResponseEncoding {
+        return .Data
+    }
+}
+
+//MARK:
 public extension RequestToken where SerializedType == NSData {
     
     var responseEncoding: ResponseEncoding {
