@@ -8,6 +8,23 @@
 
 import UIKit
 import XCTest
+import Alamofire
+@testable import APIKit
+
+
+
+struct TopPage: RequestToken {
+    
+    typealias Response = Int
+    typealias SerializedObject = String
+    
+    var method: HTTPMethod = .GET
+    var URL: String = ""
+    
+    static func transform(request: NSURLRequest?, response: NSHTTPURLResponse?, object: TopPage.SerializedObject) throws -> TopPage.Response {
+        return 1
+    }
+}
 
 class APIKitTests: XCTestCase {
     
@@ -24,6 +41,7 @@ class APIKitTests: XCTestCase {
     func testExample() {
         // This is an example of a functional test case.
         XCTAssert(true, "Pass")
+        
     }
     
     func testPerformanceExample() {

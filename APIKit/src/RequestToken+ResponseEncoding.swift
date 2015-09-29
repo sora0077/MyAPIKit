@@ -10,133 +10,133 @@ import Foundation
 
 
 //MARK:
-public extension RequestToken where SerializedType == Any {
+public extension RequestToken where SerializedObject == Any {
     
-    var responseEncoding: ResponseEncoding {
+    var serializer: Serializer {
         return .Data
     }
 }
 
-public extension RequestToken where SerializedType == Any? {
+public extension RequestToken where SerializedObject == Any? {
     
-    var responseEncoding: ResponseEncoding {
+    var serializer: Serializer {
         return .Data
     }
 }
 
-public extension RequestToken where SerializedType == Any! {
+public extension RequestToken where SerializedObject == Any! {
     
-    var responseEncoding: ResponseEncoding {
-        return .Data
-    }
-}
-
-//MARK:
-public extension RequestToken where SerializedType == NSData {
-    
-    var responseEncoding: ResponseEncoding {
-        return .Data
-    }
-}
-
-public extension RequestToken where SerializedType == NSData? {
-    
-    var responseEncoding: ResponseEncoding {
-        return .Data
-    }
-}
-
-public extension RequestToken where SerializedType == NSData! {
-    
-    var responseEncoding: ResponseEncoding {
+    var serializer: Serializer {
         return .Data
     }
 }
 
 //MARK:
-public extension RequestToken where SerializedType == String {
+public extension RequestToken where SerializedObject == NSData {
     
-    var responseEncoding: ResponseEncoding {
+    var serializer: Serializer {
+        return .Data
+    }
+}
+
+public extension RequestToken where SerializedObject == NSData? {
+    
+    var serializer: Serializer {
+        return .Data
+    }
+}
+
+public extension RequestToken where SerializedObject == NSData! {
+    
+    var serializer: Serializer {
+        return .Data
+    }
+}
+
+//MARK:
+public extension RequestToken where SerializedObject == String {
+    
+    var serializer: Serializer {
         return .String(NSUTF8StringEncoding)
     }
 }
 
-public extension RequestToken where SerializedType == String? {
+public extension RequestToken where SerializedObject == String? {
     
-    var responseEncoding: ResponseEncoding {
+    var serializer: Serializer {
         return .String(NSUTF8StringEncoding)
     }
 }
 
-public extension RequestToken where SerializedType == String! {
+public extension RequestToken where SerializedObject == String! {
     
-    var responseEncoding: ResponseEncoding {
+    var serializer: Serializer {
         return .String(NSUTF8StringEncoding)
     }
 }
 
 //MARK:
-public extension RequestToken where SerializedType == [String: AnyObject] {
+public extension RequestToken where SerializedObject == [String: AnyObject] {
     
-    var responseEncoding: ResponseEncoding {
+    var serializer: Serializer {
         return .JSON(.AllowFragments)
     }
 }
 
-public extension RequestToken where SerializedType == [String: AnyObject]? {
+public extension RequestToken where SerializedObject == [String: AnyObject]? {
     
-    var responseEncoding: ResponseEncoding {
+    var serializer: Serializer {
         return .JSON(.AllowFragments)
     }
 }
 
-public extension RequestToken where SerializedType == [String: AnyObject]! {
+public extension RequestToken where SerializedObject == [String: AnyObject]! {
     
-    var responseEncoding: ResponseEncoding {
-        return .JSON(.AllowFragments)
-    }
-}
-
-//MARK:
-public extension RequestToken where SerializedType == [[String: AnyObject]] {
-    
-    var responseEncoding: ResponseEncoding {
-        return .JSON(.AllowFragments)
-    }
-}
-
-public extension RequestToken where SerializedType == [[String: AnyObject]]? {
-    
-    var responseEncoding: ResponseEncoding {
-        return .JSON(.AllowFragments)
-    }
-}
-
-public extension RequestToken where SerializedType == [[String: AnyObject]]! {
-    
-    var responseEncoding: ResponseEncoding {
+    var serializer: Serializer {
         return .JSON(.AllowFragments)
     }
 }
 
 //MARK:
-public extension RequestToken where SerializedType == [AnyObject] {
+public extension RequestToken where SerializedObject == [[String: AnyObject]] {
     
-    var responseEncoding: ResponseEncoding {
+    var serializer: Serializer {
         return .JSON(.AllowFragments)
     }
 }
 
-public extension RequestToken where SerializedType == [AnyObject]? {
+public extension RequestToken where SerializedObject == [[String: AnyObject]]? {
     
-    var responseEncoding: ResponseEncoding {
+    var serializer: Serializer {
         return .JSON(.AllowFragments)
     }
 }
 
-public extension RequestToken where SerializedType == [AnyObject]! {
+public extension RequestToken where SerializedObject == [[String: AnyObject]]! {
     
-    var responseEncoding: ResponseEncoding {
+    var serializer: Serializer {
+        return .JSON(.AllowFragments)
+    }
+}
+
+//MARK:
+public extension RequestToken where SerializedObject == [AnyObject] {
+    
+    var serializer: Serializer {
+        return .JSON(.AllowFragments)
+    }
+}
+
+public extension RequestToken where SerializedObject == [AnyObject]? {
+    
+    var serializer: Serializer {
+        return .JSON(.AllowFragments)
+    }
+}
+
+public extension RequestToken where SerializedObject == [AnyObject]! {
+    
+    var serializer: Serializer {
         return .JSON(.AllowFragments)
     }
 }

@@ -8,49 +8,35 @@
 
 import Foundation
 
+public protocol ResponseSerializer {}
+
 /**
 *  各APIを表現するためのプロトコル定義
 */
 public protocol RequestToken {
     
     typealias Response
-    typealias SerializedType
+    typealias SerializedObject
     
     var method: HTTPMethod { get }
     
     var URL: String { get }
-    var headers: [String: AnyObject]? { get }
+    var headers: [String: String]? { get }
     var parameters: [String: AnyObject]? { get }
     var encoding: RequestEncoding { get }
     
-    var responseEncoding: ResponseEncoding { get }
-    
-    
+    var serializer: Serializer { get }
+        
     var timeoutInterval: NSTimeInterval? { get }
     
     var statusCode: Set<Int>? { get }
     var contentType: Set<String>? { get }
     
-    static func transform(request: NSURLRequest, response: NSHTTPURLResponse?, object: SerializedType) throws -> Response
+    static func transform(request: NSURLRequest?, response: NSHTTPURLResponse?, object: SerializedObject) throws -> Response
 }
 
-public enum ResponseEncoding {
-    
+public enum Serializer {
     case Data
-    case String(NSStringEncoding?)
+    case String(NSStringEncoding)
     case JSON(NSJSONReadingOptions)
-    case Custom(Request.Serializer)
-    
-    var serializer: Request.Serializer {
-        switch self {
-        case .Data:
-            return Request.responseDataSerializer()
-        case let .String(encoding):
-            return Request.stringResponseSerializer(encoding: encoding)
-        case let .JSON(options):
-            return Request.JSONResponseSerializer(options: options)
-        case let .Custom(serializer):
-            return serializer
-        }
-    }
 }

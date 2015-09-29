@@ -95,7 +95,7 @@ public class API<Error: APIKitErrorType> {
     }
 }
 
-extension API {
+public extension API {
     
     /**
     request()
@@ -104,171 +104,80 @@ extension API {
     
     :returns: Future<T.Response, APIKitError<Error>>
     */
-    public final func request<T: RequestToken>(token: T) -> Future<T.Response, Error> {
+    final func request<T: RequestToken>(token: T) -> Future<T.Response, Error> {
+        
         let promise = Promise<T.Response, Error>()
         
-        let serializer = token.responseEncoding.serializer
-        let request = createRequest(token)
-        let boxed = Pack(token, request)
+        let ticket = createRequest(token)
         
-        execQueue.insert(boxed)
-        
-        request.APIKit_requestToken = boxed
-        
-        request.response(serializer: serializer) { [weak self] URLRequest, response, object, error in
-            self?.response(promise, token: token, pack: boxed, URLRequest: URLRequest, response: response, object: object, error: error)
-        }
-        
-        return promise.future
-    }
-
-    /**
-    request()
-    
-    :param: token RequestToken protocol with Optional Type
-    
-    :returns: Future<T.Response, APIKitError<Error>>
-    */
-    public final func request<T: RequestToken, U where T.SerializedType == U?>(token: T) -> Future<T.Response, Error> {
-        let promise = Promise<T.Response, Error>()
-        
-        let serializer = token.responseEncoding.serializer
-        let request = createRequest(token)
-        let boxed = Pack(token, request)
-        
-        execQueue.insert(boxed)
-        
-        request.APIKit_requestToken = boxed
-        
-        request.response(serializer: serializer) { [weak self] URLRequest, response, object, error in
-            self?.responseNilable(promise, token: token, pack: boxed, URLRequest: URLRequest, response: response, object: object, error: error)
-        }
-        
-        return promise.future
-    }
-
-    /**
-    request()
-    
-    :param: token RequestToken protocol with Any Type
-    
-    :returns: Future<T.Response, APIKitError<Error>>
-    */
-    public final func request<T: RequestToken where T.SerializedType == Any>(token: T) -> Future<T.Response, Error> {
-        let promise = Promise<T.Response, Error>()
-        
-        let serializer = token.responseEncoding.serializer
-        let request = createRequest(token)
-        let boxed = Pack(token, request)
-        
-        execQueue.insert(boxed)
-        
-        request.APIKit_requestToken = boxed
-        
-        request.response(serializer: serializer) { [weak self] URLRequest, response, object, error in
-            self?.responseAnyable(promise, token: token, pack: boxed, URLRequest: URLRequest, response: response, object: object, error: error)
+        switch token.serializer {
+        case .Data:
+            ticket.response(completionHandler: { (request, response, data, error) in
+                if let error = error {
+                    promise.failure(Error.networkError(error))
+                    return
+                }
+                guard let data = data else {
+                    promise.failure(Error.networkError(NSError(domain: "", code: 0, userInfo: nil)))
+                    return
+                }
+                
+                do {
+                    let object = try T.transform(request, response: response, object: data as! T.SerializedObject)
+                    promise.success(object)
+                }
+                catch {
+                    promise.failure(Error.serializeError(error))
+                }
+            })
+        case let .String(encoding):
+            ticket.responseString(encoding: encoding, completionHandler: { r in
+                
+                switch r.result {
+                case let .Success(object):
+                    do {
+                        let object = try T.transform(r.request, response: r.response, object: object as! T.SerializedObject)
+                        promise.success(object)
+                    }
+                    catch {
+                        promise.failure(Error.serializeError(error))
+                    }
+                case let .Failure(error):
+                    promise.failure(Error.networkError(error))
+                }
+            })
+        case let .JSON(options):
+            ticket.responseJSON(options: options, completionHandler: { r in
+                
+                switch r.result {
+                case let .Success(object):
+                    do {
+                        let object = try T.transform(r.request, response: r.response, object: object as! T.SerializedObject)
+                        promise.success(object)
+                    }
+                    catch {
+                        promise.failure(Error.serializeError(error))
+                    }
+                case let .Failure(error):
+                    promise.failure(Error.networkError(error))
+                }
+            })
         }
         
         return promise.future
     }
 }
 
-//
-extension API {
-
-    final func responseNilable<T: RequestToken, U where T.SerializedType == U?>(promise: Promise<T.Response, Error>, token: T, pack: Pack, URLRequest: NSURLRequest?, response: NSHTTPURLResponse?, object: AnyObject?, error: NSError?) {
-        
-        if execQueue.contains(pack) {
-            execQueue.remove(pack)
-        }
-        
-        if let error = error {
-            try! promise.failure(.networkError(error))
-            return
-        }
-        
-        if  let response = response,
-            let error = validate(request: URLRequest!, response: response, object: object)
-        {
-            try! promise.failure(error)
-            return
-        }
-        
-        do {
-            let serialized = try T.transform(URLRequest!, response: response, object: object as? U)
-            try! promise.success(serialized)
-        }
-        catch let error {
-            try! promise.failure(.serializeError(error))
-        }
-    }
-
-    final func responseAnyable<T: RequestToken where T.SerializedType == Any>(promise: Promise<T.Response, Error>, token: T, pack: Pack, URLRequest: NSURLRequest?, response: NSHTTPURLResponse?, object: AnyObject?, error: NSError?) {
-        
-        if execQueue.contains(pack) {
-            execQueue.remove(pack)
-        }
-        
-        if let error = error {
-            try! promise.failure(.networkError(error))
-            return
-        }
-        
-        if  let response = response,
-            let error = validate(request: URLRequest!, response: response, object: object)
-        {
-            try! promise.failure(error)
-            return
-        }
-        
-        do {
-            let serialized = try T.transform(URLRequest!, response: response, object: object)
-            try! promise.success(serialized)
-        }
-        catch let error {
-            try! promise.failure(.serializeError(error))
-        }
-    }
+private extension API {
     
-    final func response<T: RequestToken>(promise: Promise<T.Response, Error>, token: T, pack: Pack, URLRequest: NSURLRequest?, response: NSHTTPURLResponse?, object: AnyObject?, error: NSError?) {
-        
-        if execQueue.contains(pack) {
-            execQueue.remove(pack)
-        }
-        
-        if let error = error {
-            try! promise.failure(.networkError(error))
-            return
-        }
-        
-        if  let response = response,
-            let error = validate(request: URLRequest!, response: response, object: object)
-        {
-            try! promise.failure(error)
-            return
-        }
-        
-        do {
-            let serialized = try T.transform(URLRequest!, response: response, object: object as! T.SerializedType)
-            try! promise.success(serialized)
-        }
-        catch let error {
-            try! promise.failure(.serializeError(error))
-        }
-    }
-}
-
-
-extension API {
-    
-    private final func createRequest<T: RequestToken>(token: T) -> Request {
+    func createRequest<T: RequestToken>(token: T) -> Request {
         
         func encodedUrl(str: String) -> String {
             if str.hasPrefix("http") {
-                var vs = split(str.characters, maxSplit: 2, allowEmptySlices: true, isSeparator: { $0 == "/" }).map(String.init)
+                var vs = str.characters.split(2, allowEmptySlices: true, isSeparator: { $0 == "/" }).map(String.init)
                 let last = vs.count - 1
                 vs[last] = url_encode(vs[last])
-                return "/".join(vs)
+                return vs.joinWithSeparator("/")
             }
             
             return self.baseURL + url_encode(str)
@@ -279,7 +188,7 @@ extension API {
         let parameters = token.parameters
         let encoding = token.encoding
         
-        let URLRequest = encoding.encode({ () -> NSURLRequest in
+        let URLRequest = encoding.encode({
             let URLRequest = NSMutableURLRequest(URL: NSURL(string: URL)!)
             URLRequest.HTTPMethod = method.rawValue
             if let headers = self.additionalHeaders() {
@@ -289,10 +198,10 @@ extension API {
             }
             if let headers = token.headers {
                 for (k, v) in headers {
-                    URLRequest.addValue("\(v)", forHTTPHeaderField: k)
+                    URLRequest.addValue(v, forHTTPHeaderField: k)
                 }
             }
-//            self.updateURLRequest(URLRequest)
+            //            self.updateURLRequest(URLRequest)
             if let timeoutInterval = token.timeoutInterval {
                 URLRequest.timeoutInterval = timeoutInterval
             }
@@ -309,22 +218,11 @@ extension API {
             request.validate(contentType: contentType)
         }
         
-        if let debugger = debugger {
-            request.responseString(encoding: NSUTF8StringEncoding) { URLRequest, response, object, error in
-                let result: Result<String!, NSError>
-                if let e = error {
-                    result = Result(error: e)
-                } else {
-                    result = Result(value: object)
-                }
-                debugger.response(URLRequest!, response: response!, result: result)
-            }
-        }
-        
         return request
     }
+    
+    
 }
-
 
 
 private var AlamofireRequest_APIKit_requestToken: UInt8 = 0

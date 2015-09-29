@@ -10,7 +10,7 @@ import Foundation
 
 public extension RequestToken {
     
-    var headers: [String: AnyObject]? {
+    var headers: [String: String]? {
         return nil
     }
     
