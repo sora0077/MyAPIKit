@@ -30,6 +30,7 @@ class Yahoo: API<Error> {
     }
 }
 
+
 struct Top: RequestToken {
     
     typealias Response = String

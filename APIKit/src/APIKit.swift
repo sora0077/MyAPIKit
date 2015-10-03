@@ -112,26 +112,23 @@ public extension API {
         
         switch token.serializer {
         case .Data:
-            ticket.response(completionHandler: { (request, response, data, error) in
-                if let error = error {
-                    promise.failure(Error.networkError(error))
-                    return
-                }
-                guard let data = data else {
-                    promise.failure(Error.networkError(NSError(domain: "", code: 0, userInfo: nil)))
-                    return
-                }
+            ticket.responseData { r in
                 
-                do {
-                    let object = try T.transform(request, response: response, object: data as! T.SerializedObject)
-                    promise.success(object)
+                switch r.result {
+                case let .Success(object):
+                    do {
+                        let object = try T.transform(r.request, response: r.response, object: object as! T.SerializedObject)
+                        promise.success(object)
+                    }
+                    catch {
+                        promise.failure(Error.serializeError(error))
+                    }
+                case let .Failure(error):
+                    promise.failure(Error.networkError(error))
                 }
-                catch {
-                    promise.failure(Error.serializeError(error))
-                }
-            })
+            }
         case let .String(encoding):
-            ticket.responseString(encoding: encoding, completionHandler: { r in
+            ticket.responseString(encoding: encoding) { r in
                 
                 switch r.result {
                 case let .Success(object):
@@ -145,9 +142,9 @@ public extension API {
                 case let .Failure(error):
                     promise.failure(Error.networkError(error))
                 }
-            })
+            }
         case let .JSON(options):
-            ticket.responseJSON(options: options, completionHandler: { r in
+            ticket.responseJSON(options: options) { r in
                 
                 switch r.result {
                 case let .Success(object):
@@ -161,7 +158,7 @@ public extension API {
                 case let .Failure(error):
                     promise.failure(Error.networkError(error))
                 }
-            })
+            }
         }
         
         return promise.future

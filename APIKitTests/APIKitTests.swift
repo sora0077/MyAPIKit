@@ -8,10 +8,7 @@
 
 import UIKit
 import XCTest
-import Alamofire
 @testable import APIKit
-
-
 
 struct TopPage: RequestToken {
     

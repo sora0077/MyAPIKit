@@ -8,8 +8,6 @@
 
 import Foundation
 
-public protocol ResponseSerializer {}
-
 /**
 *  各APIを表現するためのプロトコル定義
 */
