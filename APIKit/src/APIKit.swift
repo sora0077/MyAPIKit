@@ -151,7 +151,7 @@ public extension API {
                 switch r.result {
                 case let .Success(object):
                     do {
-                        let object = try T.transform(r.request, response: r.response, object: object as! T.SerializedObject)
+                        let object = try token.transform(r.request, response: r.response, object: object as! T.SerializedObject)
                         promise.success(object)
                     }
                     catch {
@@ -167,7 +167,7 @@ public extension API {
                 switch r.result {
                 case let .Success(object):
                     do {
-                        let object = try T.transform(r.request, response: r.response, object: object as! T.SerializedObject)
+                        let object = try token.transform(r.request, response: r.response, object: object as! T.SerializedObject)
                         promise.success(object)
                     }
                     catch {
@@ -183,7 +183,7 @@ public extension API {
                 switch r.result {
                 case let .Success(object):
                     do {
-                        let object = try T.transform(r.request, response: r.response, object: object as! T.SerializedObject)
+                        let object = try token.transform(r.request, response: r.response, object: object as! T.SerializedObject)
                         promise.success(object)
                     }
                     catch {
@@ -199,7 +199,7 @@ public extension API {
                 switch r.result {
                 case let .Success(object):
                     do {
-                        let object = try T.transform(r.request, response: r.response, object: object as! T.SerializedObject)
+                        let object = try token.transform(r.request, response: r.response, object: object as! T.SerializedObject)
                         promise.success(object)
                     }
                     catch {
@@ -226,7 +226,7 @@ public extension API {
                 switch r.result {
                 case let .Success(object):
                     do {
-                        let object = try T.transform(r.request, response: r.response, object: object as! T.SerializedObject)
+                        let object = try token.transform(r.request, response: r.response, object: object as! T.SerializedObject)
                         promise.success(object)
                     }
                     catch {

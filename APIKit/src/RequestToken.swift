@@ -32,7 +32,7 @@ public protocol RequestToken {
     var statusCode: Set<Int>? { get }
     var contentType: Set<String>? { get }
     
-    static func transform(request: NSURLRequest?, response: NSHTTPURLResponse?, object: SerializedObject) throws -> Response
+    func transform(request: NSURLRequest?, response: NSHTTPURLResponse?, object: SerializedObject) throws -> Response
 }
 
 public protocol MultipartRequestToken: RequestToken {

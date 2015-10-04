@@ -18,7 +18,7 @@ struct TopPage: RequestToken {
     var method: HTTPMethod = .GET
     var path: String = ""
     
-    static func transform(request: NSURLRequest?, response: NSHTTPURLResponse?, object: TopPage.SerializedObject) throws -> TopPage.Response {
+    func transform(request: NSURLRequest?, response: NSHTTPURLResponse?, object: TopPage.SerializedObject) throws -> TopPage.Response {
         return 1
     }
 }

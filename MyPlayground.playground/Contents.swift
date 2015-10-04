@@ -32,7 +32,7 @@ struct Top: RequestToken {
     var baseURL: NSURL? = NSURL(string: "http://www.yahoo.co.jp/")
     var path: String = "/"
     
-    static func transform(request: NSURLRequest?, response: NSHTTPURLResponse?, object: SerializedObject) throws -> Response {
+    func transform(request: NSURLRequest?, response: NSHTTPURLResponse?, object: SerializedObject) throws -> Response {
         return object
     }
 }
