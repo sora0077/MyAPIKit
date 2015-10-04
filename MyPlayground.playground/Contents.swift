@@ -41,8 +41,7 @@ let yahoo = API<Error>()
 
 yahoo.request(Top()).onSuccess { value in
     print(value)
-     
+    
 }
-
 
 XCPSetExecutionShouldContinueIndefinitely()
