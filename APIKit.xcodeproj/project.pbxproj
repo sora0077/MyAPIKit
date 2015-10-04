@@ -16,6 +16,10 @@
 		D95880CE1BC0E4C4008C549B /* Alamofire.framework in CopyFiles */ = {isa = PBXBuildFile; fileRef = D95880C41BC0E436008C549B /* Alamofire.framework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
 		D95880CF1BC0E4C4008C549B /* BrightFutures.framework in CopyFiles */ = {isa = PBXBuildFile; fileRef = D95880C51BC0E436008C549B /* BrightFutures.framework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
 		D95880D01BC0E4C5008C549B /* Result.framework in CopyFiles */ = {isa = PBXBuildFile; fileRef = D95880C61BC0E436008C549B /* Result.framework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
+		D95880F31BC0F1C1008C549B /* Alamofire.framework in CopyFiles */ = {isa = PBXBuildFile; fileRef = D95880C41BC0E436008C549B /* Alamofire.framework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
+		D95880F41BC0F1C1008C549B /* BrightFutures.framework in CopyFiles */ = {isa = PBXBuildFile; fileRef = D95880C51BC0E436008C549B /* BrightFutures.framework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
+		D95880F51BC0F1C1008C549B /* Result.framework in CopyFiles */ = {isa = PBXBuildFile; fileRef = D95880C61BC0E436008C549B /* Result.framework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
+		D95880F61BC0F1C1008C549B /* APIKit.framework in CopyFiles */ = {isa = PBXBuildFile; fileRef = D99761FF1B2219C100A48209 /* APIKit.framework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
 		D994E9C11B62A45800F10B9E /* RequestToken+ResponseEncoding.swift in Sources */ = {isa = PBXBuildFile; fileRef = D994E9C01B62A45800F10B9E /* RequestToken+ResponseEncoding.swift */; };
 		D994E9C31B62A47D00F10B9E /* RequestToken+extension.swift in Sources */ = {isa = PBXBuildFile; fileRef = D994E9C21B62A47D00F10B9E /* RequestToken+extension.swift */; };
 		D994E9C51B63C1C600F10B9E /* RequestToken.swift in Sources */ = {isa = PBXBuildFile; fileRef = D994E9C41B63C1C600F10B9E /* RequestToken.swift */; };
@@ -46,6 +50,19 @@
 				D95880CE1BC0E4C4008C549B /* Alamofire.framework in CopyFiles */,
 				D95880CF1BC0E4C4008C549B /* BrightFutures.framework in CopyFiles */,
 				D95880D01BC0E4C5008C549B /* Result.framework in CopyFiles */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		D95880F21BC0F1B2008C549B /* CopyFiles */ = {
+			isa = PBXCopyFilesBuildPhase;
+			buildActionMask = 2147483647;
+			dstPath = "";
+			dstSubfolderSpec = 10;
+			files = (
+				D95880F31BC0F1C1008C549B /* Alamofire.framework in CopyFiles */,
+				D95880F41BC0F1C1008C549B /* BrightFutures.framework in CopyFiles */,
+				D95880F51BC0F1C1008C549B /* Result.framework in CopyFiles */,
+				D95880F61BC0F1C1008C549B /* APIKit.framework in CopyFiles */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -211,6 +228,7 @@
 				D99762061B2219C100A48209 /* Sources */,
 				D99762071B2219C100A48209 /* Frameworks */,
 				D99762081B2219C100A48209 /* Resources */,
+				D95880F21BC0F1B2008C549B /* CopyFiles */,
 			);
 			buildRules = (
 			);
