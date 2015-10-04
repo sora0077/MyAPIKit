@@ -23,28 +23,21 @@ enum Error: APIKitErrorType {
     }
 }
 
-class Yahoo: API<Error> {
-    
-    init() {
-        super.init(baseURL: "http://www.yahoo.co.jp/")
-    }
-}
-
-
 struct Top: RequestToken {
     
     typealias Response = String
     typealias SerializedObject = String
     
     var method: HTTPMethod = .GET
-    var URL: String = ""
+    var baseURL: NSURL? = NSURL(string: "http://www.yahoo.co.jp/")
+    var path: String = "/"
     
     static func transform(request: NSURLRequest?, response: NSHTTPURLResponse?, object: SerializedObject) throws -> Response {
         return object
     }
 }
 
-let yahoo = Yahoo()
+let yahoo = API<Error>()
 
 yahoo.request(Top()).onSuccess { value in
     print(value)

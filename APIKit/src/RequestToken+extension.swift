@@ -10,6 +10,10 @@ import Foundation
 
 public extension RequestToken {
     
+    var baseURL: NSURL? {
+        return nil
+    }
+    
     var headers: [String: String]? {
         return nil
     }
@@ -32,5 +36,12 @@ public extension RequestToken {
     
     var contentType: Set<String>? {
         return nil
+    }
+}
+
+public extension MultipartRequestToken {
+    
+    var method: HTTPMethod {
+        return .POST
     }
 }

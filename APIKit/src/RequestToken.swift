@@ -18,7 +18,9 @@ public protocol RequestToken {
     
     var method: HTTPMethod { get }
     
-    var URL: String { get }
+    var baseURL: NSURL? { get }
+    var path: String { get }
+    
     var headers: [String: String]? { get }
     var parameters: [String: AnyObject]? { get }
     var encoding: RequestEncoding { get }
@@ -33,8 +35,22 @@ public protocol RequestToken {
     static func transform(request: NSURLRequest?, response: NSHTTPURLResponse?, object: SerializedObject) throws -> Response
 }
 
+public protocol MultipartRequestToken: RequestToken {
+    
+    var multiparts: [String: FormData] { get }
+}
+
 public enum Serializer {
     case Data
     case String(NSStringEncoding)
     case JSON(NSJSONReadingOptions)
+    case PropertyList(NSPropertyListReadOptions)
+    case Custom
+}
+
+public struct FormData {
+    
+    public init(data: NSData, mimeType: String) {
+        
+    }
 }

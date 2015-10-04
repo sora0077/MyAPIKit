@@ -14,6 +14,7 @@ import Result
 public typealias HTTPMethod = Alamofire.Method
 public typealias RequestEncoding = Alamofire.ParameterEncoding
 public typealias Request = Alamofire.Request
+public typealias AFuture = BrightFutures.Future
 
 public let APIKitErrorDomain = "jp.sora0077.APIKit.ErrorDomain"
 
@@ -33,18 +34,14 @@ public protocol APIKitErrorType: ErrorType {
 /**
 * API control class
 */
-public class API<Error: APIKitErrorType> {
+public final class API<Error: APIKitErrorType> {
     
     private var execQueue: Set<Pack> = []
     private let manager: Alamofire.Manager
-    private let baseURL: String
     
-    private let debugger: APIDebugger?
-    
-    public init(baseURL: String = "", configuration: NSURLSessionConfiguration = .defaultSessionConfiguration(), debugger: APIDebugger? = nil) {
+    public init(configuration: NSURLSessionConfiguration = .defaultSessionConfiguration()) {
         
-        self.baseURL = baseURL
-        if configuration.HTTPAdditionalHeaders == nil {
+        if configuration.HTTPAdditionalHeaders?.count == 0 {
             configuration.HTTPAdditionalHeaders = Manager.defaultHTTPHeaders
         } else {
             for (k, v) in Manager.defaultHTTPHeaders {
@@ -54,36 +51,17 @@ public class API<Error: APIKitErrorType> {
             }
         }
         self.manager = Manager(configuration: configuration)
-        self.debugger = debugger
     }
+}
 
-    public func additionalHeaders() -> [String: AnyObject]? {
-        return nil
-    }
+public extension API {
     
-//    public func updateURLRequest(request: NSMutableURLRequest) {
-//        
-//    }
-    
-    /**
-    validate(request:response:object)
-    
-    :param: URLRequest <#URLRequest description#>
-    :param: resonse    <#resonse description#>
-    :param: object     <#object description#>
-    
-    :returns: <#return value description#>
-    */
-    public func validate(request URLRequest: NSURLRequest, response: NSHTTPURLResponse, object: AnyObject?) -> Error? {
-        return nil
-    }
-
     /**
     cancel(_:)
     
     :param: clazz <#clazz description#>
     */
-    public func cancel<T: RequestToken>(clazz: T.Type, _ f: T -> Bool = { _ in true }) {
+    public final func cancel<T: RequestToken>(clazz: T.Type, _ f: T -> Bool = { _ in true }) {
         
         for pack in execQueue {
             if let token = pack.token as? T where f(token) {
@@ -93,26 +71,82 @@ public class API<Error: APIKitErrorType> {
             }
         }
     }
-}
-
-public extension API {
+    
+    /**
+    <#Description#>
+    
+    - parameter token: RequestToken protocol
+    
+    - returns: <#return value description#>
+    */
+    final func request<T: RequestToken>(token: T) -> Future<T.Response, Error> {
+        
+        let future = createRequest(token)
+        
+        return future.flatMap {
+            self.response(token, request: $0)
+        }
+    }
     
     /**
     request()
     
-    :param: token RequestToken protocol
+    - parameter token:      RequestToken protocol
+    - parameter serializer: ResponseSerializerType protocol
     
-    :returns: Future<T.Response, APIKitError<Error>>
+    - returns: Future<T.Response, APIKitError<Error>>
     */
-    final func request<T: RequestToken>(token: T) -> Future<T.Response, Error> {
+    final func request<T: RequestToken, S: ResponseSerializerType>(token: T, serializer: S) -> Future<T.Response, Error> {
+        
+        let future = createRequest(token)
+        
+        return future.flatMap {
+            self.response(token, serializer: serializer, request: $0)
+        }
+    }
+    
+    /**
+    request()
+    
+    - parameter token: MultipartRequestToken protocol
+    
+    - returns: Future<T.Response, APIKitError<Error>>
+    */
+    final func request<T: MultipartRequestToken>(token: T) -> Future<T.Response, Error> {
+        
+        let future = createMultipartFormDataRequest(token)
+        
+        return future.flatMap {
+            self.response(token, request: $0)
+        }
+    }
+    
+    /**
+    request()
+    
+    - parameter token:      RequestToken protocol
+    - parameter serializer: ResponseSerializerType protocol
+    
+    - returns: Future<T.Response, APIKitError<Error>>
+    */
+    final func request<T: MultipartRequestToken, S: ResponseSerializerType>(token: T, serializer: S) -> Future<T.Response, Error> {
+        
+        let future = createMultipartFormDataRequest(token)
+        
+        return future.flatMap {
+            self.response(token, serializer: serializer, request: $0)
+        }
+    }
+    
+    
+    
+    private func response<T: RequestToken>(token: T, request: Request) -> Future<T.Response, Error> {
         
         let promise = Promise<T.Response, Error>()
         
-        let ticket = createRequest(token)
-        
         switch token.serializer {
         case .Data:
-            ticket.responseData { r in
+            request.responseData { r in
                 
                 switch r.result {
                 case let .Success(object):
@@ -128,7 +162,7 @@ public extension API {
                 }
             }
         case let .String(encoding):
-            ticket.responseString(encoding: encoding) { r in
+            request.responseString(encoding: encoding) { r in
                 
                 switch r.result {
                 case let .Success(object):
@@ -144,7 +178,7 @@ public extension API {
                 }
             }
         case let .JSON(options):
-            ticket.responseJSON(options: options) { r in
+            request.responseJSON(options: options) { r in
                 
                 switch r.result {
                 case let .Success(object):
@@ -159,46 +193,74 @@ public extension API {
                     promise.failure(Error.networkError(error))
                 }
             }
+        case let .PropertyList(options):
+            request.responsePropertyList(options: options) { r in
+                
+                switch r.result {
+                case let .Success(object):
+                    do {
+                        let object = try T.transform(r.request, response: r.response, object: object as! T.SerializedObject)
+                        promise.success(object)
+                    }
+                    catch {
+                        promise.failure(Error.serializeError(error))
+                    }
+                case let .Failure(error):
+                    promise.failure(Error.networkError(error))
+                }
+            }
+        case .Custom:
+            fatalError("Custom needs ResponseSerializerType")
         }
+        return promise.future
+    }
+    
+    
+    private func response<T: RequestToken, S: ResponseSerializerType>(token: T, serializer: S, request: Request) -> Future<T.Response, Error> {
         
+        let promise = Promise<T.Response, Error>()
+        
+        switch token.serializer {
+        case .Custom:
+            request.response(responseSerializer: serializer, completionHandler: { r in
+                switch r.result {
+                case let .Success(object):
+                    do {
+                        let object = try T.transform(r.request, response: r.response, object: object as! T.SerializedObject)
+                        promise.success(object)
+                    }
+                    catch {
+                        promise.failure(Error.serializeError(error))
+                    }
+                case let .Failure(error):
+                    promise.failure(Error.networkError(error))
+                }
+            })
+        default:
+            fatalError("Other token.serializer unneeds ResponseSerializerType")
+        }
         return promise.future
     }
 }
 
 private extension API {
     
-    func createRequest<T: RequestToken>(token: T) -> Request {
-        
-        func encodedUrl(str: String) -> String {
-            if str.hasPrefix("http") {
-                var vs = str.characters.split(2, allowEmptySlices: true, isSeparator: { $0 == "/" }).map(String.init)
-                let last = vs.count - 1
-                vs[last] = url_encode(vs[last])
-                return vs.joinWithSeparator("/")
-            }
-            
-            return self.baseURL + url_encode(str)
-        }
+    func createRequest<T: RequestToken>(token: T) -> Future<Request, Error> {
         
         let method = token.method
-        let URL = encodedUrl(token.URL)
+        let URL = NSURL(string: token.path, relativeToURL: token.baseURL)
         let parameters = token.parameters
         let encoding = token.encoding
         
         let URLRequest = encoding.encode({
-            let URLRequest = NSMutableURLRequest(URL: NSURL(string: URL)!)
+            let URLRequest = NSMutableURLRequest(URL: URL!)
             URLRequest.HTTPMethod = method.rawValue
-            if let headers = self.additionalHeaders() {
-                for (k, v) in headers {
-                    URLRequest.addValue("\(v)", forHTTPHeaderField: k)
-                }
-            }
             if let headers = token.headers {
                 for (k, v) in headers {
                     URLRequest.addValue(v, forHTTPHeaderField: k)
                 }
             }
-            //            self.updateURLRequest(URLRequest)
+            
             if let timeoutInterval = token.timeoutInterval {
                 URLRequest.timeoutInterval = timeoutInterval
             }
@@ -215,7 +277,63 @@ private extension API {
             request.validate(contentType: contentType)
         }
         
-        return request
+        return Future(value: request)
+    }
+    
+    func createMultipartFormDataRequest<T: MultipartRequestToken>(token: T) -> Future<Request, Error> {
+        
+        let method = token.method
+        let URL = NSURL(string: token.path, relativeToURL: token.baseURL)
+        let encoding = token.encoding
+        
+        let URLRequest = encoding.encode({
+            let URLRequest = NSMutableURLRequest(URL: URL!)
+            URLRequest.HTTPMethod = method.rawValue
+            if let headers = token.headers {
+                for (k, v) in headers {
+                    URLRequest.addValue(v, forHTTPHeaderField: k)
+                }
+            }
+            
+            if let timeoutInterval = token.timeoutInterval {
+                URLRequest.timeoutInterval = timeoutInterval
+            }
+            return URLRequest
+            }(),
+            parameters: nil).0
+        
+        let promise = Promise<Request, Error>()
+        
+        manager.upload(
+            URLRequest,
+            multipartFormData: { m in
+                if let parameters = token.parameters {
+                    for (k, v) in parameters {
+                        if let v = v as? String, data = v.dataUsingEncoding(NSUTF8StringEncoding) {
+                            m.appendBodyPart(data: data, name: k)
+                        }
+                    }
+                }
+                for (k, v) in token.multiparts {
+                    
+                }
+            },
+            encodingCompletion: { r in
+                switch r {
+                case let .Success(request, _, _):
+                    if let statusCode = token.statusCode {
+                        request.validate(statusCode: statusCode)
+                    }
+                    if let contentType = token.contentType {
+                        request.validate(contentType: contentType)
+                    }
+                    promise.success(request)
+                case let .Failure(error):
+                    promise.failure(Error.serializeError(error))
+                }
+            }
+        )
+        return promise.future
     }
     
     

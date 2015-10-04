@@ -16,7 +16,7 @@ struct TopPage: RequestToken {
     typealias SerializedObject = String
     
     var method: HTTPMethod = .GET
-    var URL: String = ""
+    var path: String = ""
     
     static func transform(request: NSURLRequest?, response: NSHTTPURLResponse?, object: TopPage.SerializedObject) throws -> TopPage.Response {
         return 1
