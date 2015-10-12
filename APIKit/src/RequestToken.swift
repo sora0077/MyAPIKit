@@ -54,3 +54,8 @@ public struct FormData {
         
     }
 }
+
+public protocol DebugRequestToken {
+    
+    func printCURL(description: String)
+}

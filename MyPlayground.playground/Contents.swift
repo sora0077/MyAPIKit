@@ -23,7 +23,7 @@ enum Error: APIKitErrorType {
     }
 }
 
-struct Top: RequestToken {
+struct Top: RequestToken, DebugRequestToken {
     
     typealias Response = String
     typealias SerializedObject = String

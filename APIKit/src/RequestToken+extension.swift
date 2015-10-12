@@ -45,3 +45,10 @@ public extension MultipartRequestToken {
         return .POST
     }
 }
+
+public extension DebugRequestToken {
+    
+    func printCURL(description: String) {
+        print(description)
+    }
+}

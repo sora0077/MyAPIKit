@@ -277,6 +277,10 @@ private extension API {
             request.validate(contentType: contentType)
         }
         
+        if let token = token as? DebugRequestToken {
+            token.printCURL(request.debugDescription)
+        }
+        
         return Future(value: request)
     }
     
