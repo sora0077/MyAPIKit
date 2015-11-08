@@ -342,9 +342,9 @@ private extension API {
                         }
                     }
                 }
-                for (k, v) in token.multiparts {
-                    
-                }
+//                for (k, v) in token.multiparts {
+//                    
+//                }
             },
             encodingCompletion: { r in
                 switch r {
