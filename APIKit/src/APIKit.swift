@@ -28,6 +28,8 @@ public protocol APIKitErrorType: ErrorType {
     static func serializeError(error: ErrorType) -> Self
     
     static func validationError(error: ErrorType) -> Self
+    
+    static func unsupportedError(error: ErrorType) -> Self
 }
 
 
@@ -154,11 +156,16 @@ public extension API {
                         let object = try token.transform(r.request, response: r.response, object: object as! T.SerializedObject)
                         promise.success(object)
                     }
-                    catch {
-                        promise.failure(Error.serializeError(error))
+                    catch let error as Error {
+                        promise.failure(error)
                     }
+                    catch {
+                        promise.failure(Error.unsupportedError(error))
+                    }
+                case let .Failure(error as Error):
+                    promise.failure(error)
                 case let .Failure(error):
-                    promise.failure(Error.networkError(error))
+                    promise.failure(Error.unsupportedError(error))
                 }
             }
         case let .String(encoding):
@@ -170,11 +177,16 @@ public extension API {
                         let object = try token.transform(r.request, response: r.response, object: object as! T.SerializedObject)
                         promise.success(object)
                     }
-                    catch {
-                        promise.failure(Error.serializeError(error))
+                    catch let error as Error {
+                        promise.failure(error)
                     }
+                    catch {
+                        promise.failure(Error.unsupportedError(error))
+                    }
+                case let .Failure(error as Error):
+                    promise.failure(error)
                 case let .Failure(error):
-                    promise.failure(Error.networkError(error))
+                    promise.failure(Error.unsupportedError(error))
                 }
             }
         case let .JSON(options):
@@ -186,11 +198,16 @@ public extension API {
                         let object = try token.transform(r.request, response: r.response, object: object as! T.SerializedObject)
                         promise.success(object)
                     }
-                    catch {
-                        promise.failure(Error.serializeError(error))
+                    catch let error as Error {
+                        promise.failure(error)
                     }
+                    catch {
+                        promise.failure(Error.unsupportedError(error))
+                    }
+                case let .Failure(error as Error):
+                    promise.failure(error)
                 case let .Failure(error):
-                    promise.failure(Error.networkError(error))
+                    promise.failure(Error.unsupportedError(error))
                 }
             }
         case let .PropertyList(options):
@@ -202,11 +219,16 @@ public extension API {
                         let object = try token.transform(r.request, response: r.response, object: object as! T.SerializedObject)
                         promise.success(object)
                     }
-                    catch {
-                        promise.failure(Error.serializeError(error))
+                    catch let error as Error {
+                        promise.failure(error)
                     }
+                    catch {
+                        promise.failure(Error.unsupportedError(error))
+                    }
+                case let .Failure(error as Error):
+                    promise.failure(error)
                 case let .Failure(error):
-                    promise.failure(Error.networkError(error))
+                    promise.failure(Error.unsupportedError(error))
                 }
             }
         case .Custom:
@@ -232,8 +254,10 @@ public extension API {
                     catch {
                         promise.failure(Error.serializeError(error))
                     }
+                case let .Failure(error as Error):
+                    promise.failure(error)
                 case let .Failure(error):
-                    promise.failure(Error.networkError(error))
+                    promise.failure(Error.unsupportedError(error))
                 }
             })
         default:

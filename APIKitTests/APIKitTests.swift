@@ -38,6 +38,10 @@ enum Error: APIKitErrorType {
     static func serializeError(error: ErrorType) -> Error {
         return .Unknown
     }
+    
+    static func unsupportedError(error: ErrorType) -> Error {
+        return .Unknown
+    }
 }
 
 struct Top: RequestToken {
