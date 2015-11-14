@@ -35,8 +35,3 @@ func ==(lhs: Pack, rhs: Pack) -> Bool {
 func url_encode(str: String, characterSet: NSCharacterSet = .URLPathAllowedCharacterSet()) -> String {
     return str.stringByAddingPercentEncodingWithAllowedCharacters(characterSet)!
 }
-
-public protocol APIDebugger {
-    
-    func response(request: NSURLRequest, response: NSHTTPURLResponse, result: Result<String!, NSError>)
-}
