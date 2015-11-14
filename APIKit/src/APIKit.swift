@@ -94,6 +94,36 @@ public protocol APIKitProtocol {
     func request<T: MultipartRequestToken, S: ResponseSerializerType>(token: T, serializer: S) -> Future<T.Response, Error>
 }
 
+public protocol APICustomizableDelegate: class {
+
+    /**
+     customHeaders
+     
+     - parameter tokenHeader: <#tokenHeader description#>
+     
+     - returns: <#return value description#>
+     */
+    func customHeaders(var tokenHeader: [String: String]) -> [String: String]
+    
+    /**
+     customTimeoutInterval
+     
+     - parameter tokenTimeoutInterval: <#tokenTimeoutInterval description#>
+     
+     - returns: <#return value description#>
+     */
+    func customTimeoutInterval(var tokenTimeoutInterval: NSTimeInterval?) -> NSTimeInterval?
+    
+    /**
+     customParameters
+     
+     - parameter tokenParameters: <#tokenParameters description#>
+     
+     - returns: <#return value description#>
+     */
+    func customParameters(var tokenParameters: [String: AnyObject]) -> [String: AnyObject]
+}
+
 
 /**
 * API control class
@@ -103,6 +133,8 @@ public final class API<Error: APIKitErrorType>: APIKitProtocol {
     private var execQueue: Set<Pack> = []
     private let manager: Alamofire.Manager
     private let baseURL: NSURL?
+    
+    private weak var delegate: APICustomizableDelegate?
     
     public init(baseURL: NSURL? = nil, configuration: NSURLSessionConfiguration = .defaultSessionConfiguration()) {
         
@@ -342,19 +374,21 @@ private extension API {
         
         let method = token.method
         let URL = NSURL(string: token.path, relativeToURL: token.baseURL ?? baseURL)
-        let parameters = token.parameters
+        let parameters = delegate?.customParameters(token.parameters ?? [:]) ?? token.parameters
         let encoding = token.encoding
         
         let URLRequest = encoding.encode({
             let URLRequest = NSMutableURLRequest(URL: URL!)
             URLRequest.HTTPMethod = method.rawValue
-            if let headers = token.headers {
-                for (k, v) in headers {
-                    URLRequest.addValue(v, forHTTPHeaderField: k)
-                }
+
+            let headers = token.headers ?? [:]
+            for (k, v) in self.delegate?.customHeaders(headers) ?? headers {
+                URLRequest.addValue(v, forHTTPHeaderField: k)
             }
             
-            if let timeoutInterval = token.timeoutInterval {
+            let timeoutInterval = self.delegate?.customTimeoutInterval(token.timeoutInterval) ?? token.timeoutInterval
+            
+            if let timeoutInterval = timeoutInterval {
                 URLRequest.timeoutInterval = timeoutInterval
             }
             return URLRequest
@@ -381,18 +415,21 @@ private extension API {
         
         let method = token.method
         let URL = NSURL(string: token.path, relativeToURL: token.baseURL)
+        let parameters = self.delegate?.customParameters(token.parameters ?? [:]) ?? token.parameters
         let encoding = token.encoding
         
         let URLRequest = encoding.encode({
             let URLRequest = NSMutableURLRequest(URL: URL!)
             URLRequest.HTTPMethod = method.rawValue
-            if let headers = token.headers {
-                for (k, v) in headers {
-                    URLRequest.addValue(v, forHTTPHeaderField: k)
-                }
+            
+            let headers = token.headers ?? [:]
+            for (k, v) in self.delegate?.customHeaders(headers) ?? headers {
+                URLRequest.addValue(v, forHTTPHeaderField: k)
             }
             
-            if let timeoutInterval = token.timeoutInterval {
+            let timeoutInterval = self.delegate?.customTimeoutInterval(token.timeoutInterval) ?? token.timeoutInterval
+            
+            if let timeoutInterval = timeoutInterval {
                 URLRequest.timeoutInterval = timeoutInterval
             }
             return URLRequest
@@ -404,16 +441,13 @@ private extension API {
         manager.upload(
             URLRequest,
             multipartFormData: { m in
-                if let parameters = token.parameters {
+                if let parameters = parameters {
                     for (k, v) in parameters {
                         if let v = v as? String, data = v.dataUsingEncoding(NSUTF8StringEncoding) {
                             m.appendBodyPart(data: data, name: k)
                         }
                     }
                 }
-//                for (k, v) in token.multiparts {
-//                    
-//                }
             },
             encodingCompletion: { r in
                 switch r {

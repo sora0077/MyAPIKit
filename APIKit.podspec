@@ -18,7 +18,7 @@ Pod::Spec.new do |s|
   s.platform = :ios
   s.ios.deployment_target = '8.0'
   s.name         = "APIKit"
-  s.version      = "2.0.0"
+  s.version      = "2.0.1"
   s.summary      = "API Request Helper"
 
   # This description is used to generate tags and improve search results.
