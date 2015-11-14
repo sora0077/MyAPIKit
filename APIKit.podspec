@@ -37,7 +37,7 @@ Pod::Spec.new do |s|
   s.license      = { :type => "MIT", :file => "LICENSE" }
   s.author       = { "" => "" }
 
-  s.source       = { :git => "https://github.com/sora0077/APIKit.git", :tag => "2.0.0" }
+  s.source       = { :git => "https://github.com/sora0077/APIKit.git", :tag => "2.0.1" }
 
   s.source_files  = "APIKit/**/*.{swift}"
   s.exclude_files = "Classes/Exclude"
