@@ -303,12 +303,12 @@ public extension API {
                         promise.failure(error)
                     }
                     catch {
-                        promise.failure(Error.unsupportedError(error))
+                        promise.failure(.unsupportedError(error))
                     }
                 case let .Failure(error as Error):
                     promise.failure(error)
                 case let .Failure(error):
-                    promise.failure(Error.unsupportedError(error))
+                    promise.failure(.unsupportedError(error))
                 }
             }
         case let .PropertyList(options):
@@ -406,6 +406,15 @@ private extension API {
         
         if let token = token as? DebugRequestToken {
             token.printCURL(request.debugDescription)
+        
+            request.responseString(completionHandler: { r in
+                switch r.result {
+                case let .Success(value):
+                    token.printResponseString(value)
+                case let .Failure(error):
+                    token.printResponseString("\(error)")
+                }
+            })
         }
         
         return Future(value: request)

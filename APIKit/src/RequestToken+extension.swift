@@ -51,4 +51,8 @@ public extension DebugRequestToken {
     func printCURL(description: String) {
         print(description)
     }
+    
+    func printResponseString(description: CustomDebugStringConvertible) {
+        print(description)
+    }
 }

@@ -1,8 +1,8 @@
 PODS:
   - Alamofire (3.1.2)
-  - BrightFutures (3.0.0):
-    - Result (= 0.6.0-beta.4)
-  - Result (0.6.0-beta.4)
+  - BrightFutures (3.1.2):
+    - Result (= 0.6.0-beta.6)
+  - Result (0.6.0-beta.6)
 
 DEPENDENCIES:
   - Alamofire
@@ -10,7 +10,7 @@ DEPENDENCIES:
 
 SPEC CHECKSUMS:
   Alamofire: 7c16ca65f3c7e681fd925fd7f2dec7747ff96855
-  BrightFutures: 4a3f46747e5633562bdcef55c9e291bfb7288c34
-  Result: f7927152cbaec0c043abb06ba0bc432678818418
+  BrightFutures: 6b4b299decee4c3775a9e7188d1ecec55262e09c
+  Result: dc390d0b58f9ec43fcd536f1ebdd130803cc6cbc
 
 COCOAPODS: 0.39.0
