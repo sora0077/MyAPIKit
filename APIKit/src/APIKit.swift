@@ -124,6 +124,20 @@ public protocol APICustomizableDelegate: class {
     func customParameters(var tokenParameters: [String: AnyObject]) -> [String: AnyObject]
 }
 
+public extension APICustomizableDelegate {
+    
+    func customHeaders(tokenHeader: [String: String]) -> [String: String] {
+        return tokenHeader
+    }
+    
+    func customTimeoutInterval(tokenTimeoutInterval: NSTimeInterval?) -> NSTimeInterval? {
+        return tokenTimeoutInterval
+    }
+    
+    func customParameters(tokenParameters: [String: AnyObject]) -> [String: AnyObject] {
+        return tokenParameters
+    }
+}
 
 /**
 * API control class
@@ -134,7 +148,7 @@ public final class API<Error: APIKitErrorType>: APIKitProtocol {
     private let manager: Alamofire.Manager
     private let baseURL: NSURL?
     
-    private weak var delegate: APICustomizableDelegate?
+    public weak var delegate: APICustomizableDelegate?
     
     public init(baseURL: NSURL? = nil, configuration: NSURLSessionConfiguration = .defaultSessionConfiguration()) {
         
