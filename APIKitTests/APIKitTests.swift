@@ -23,6 +23,42 @@ struct TopPage: RequestToken {
     }
 }
 
+enum Error: APIKitErrorType {
+    
+    case Unknown
+    
+    static func networkError(error: ErrorType) -> Error {
+        return .Unknown
+    }
+    
+    static func validationError(error: ErrorType) -> Error {
+        return .Unknown
+    }
+    
+    static func serializeError(error: ErrorType) -> Error {
+        return .Unknown
+    }
+    
+    static func unsupportedError(error: ErrorType) -> Error {
+        return .Unknown
+    }
+}
+
+struct Top: RequestToken {
+    
+    typealias Response = String
+    typealias SerializedObject = String
+    
+    var method: HTTPMethod = .GET
+    var baseURL: NSURL? = NSURL(string: "http://www.yahoo.co.jp/")
+    var path: String = "/"
+    
+    func transform(request: NSURLRequest?, response: NSHTTPURLResponse?, object: SerializedObject) throws -> Response {
+        return object
+    }
+}
+
+
 class APIKitTests: XCTestCase {
     
     override func setUp() {
@@ -39,6 +75,13 @@ class APIKitTests: XCTestCase {
         // This is an example of a functional test case.
         XCTAssert(true, "Pass")
         
+        let yahoo = API<Error>()
+        
+        yahoo.request(Top()).onSuccess { value in
+            print(value)
+            
+        }
+
     }
     
     func testPerformanceExample() {

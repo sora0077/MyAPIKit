@@ -28,18 +28,131 @@ public protocol APIKitErrorType: ErrorType {
     static func serializeError(error: ErrorType) -> Self
     
     static func validationError(error: ErrorType) -> Self
+    
+    static func unsupportedError(error: ErrorType) -> Self
 }
 
+
+public protocol APIKitProtocol {
+    
+    typealias Error: ErrorType
+    
+    /**
+     cancel
+    
+     - parameter clazz: <#clazz description#>
+     */
+    func cancel<T : RequestToken>(clazz: T.Type)
+    
+    /**
+     cancel
+     
+     - parameter clazz: <#clazz description#>
+     - parameter f:     specific token cancelization
+     
+     - returns: <#return value description#>
+     */
+    func cancel<T : RequestToken>(clazz: T.Type, _ f: T -> Bool)
+    
+    
+    /**
+     request
+     
+     - parameter token: <#token description#>
+     
+     - returns: Future<T.Response, Error>
+     */
+    func request<T: RequestToken>(token: T) -> Future<T.Response, Error>
+    
+    /**
+     request
+     
+     - parameter token:      <#token description#>
+     - parameter serializer: <#serializer description#>
+     
+     - returns: Future<T.Response, Error>
+     */
+    func request<T: RequestToken, S: ResponseSerializerType>(token: T, serializer: S) -> Future<T.Response, Error>
+    
+    /**
+     multipart request
+     
+     - parameter token: <#token description#>
+     
+     - returns: <#return value description#>
+     */
+    func request<T: MultipartRequestToken>(token: T) -> Future<T.Response, Error>
+    
+    /**
+     multipart request
+     
+     - parameter token:      <#token description#>
+     - parameter serializer: <#serializer description#>
+     
+     - returns: <#return value description#>
+     */
+    func request<T: MultipartRequestToken, S: ResponseSerializerType>(token: T, serializer: S) -> Future<T.Response, Error>
+}
+
+public protocol APICustomizableDelegate: class {
+
+    /**
+     customHeaders
+     
+     - parameter tokenHeader: <#tokenHeader description#>
+     
+     - returns: <#return value description#>
+     */
+    func customHeaders(var tokenHeader: [String: String]) -> [String: String]
+    
+    /**
+     customTimeoutInterval
+     
+     - parameter tokenTimeoutInterval: <#tokenTimeoutInterval description#>
+     
+     - returns: <#return value description#>
+     */
+    func customTimeoutInterval(var tokenTimeoutInterval: NSTimeInterval?) -> NSTimeInterval?
+    
+    /**
+     customParameters
+     
+     - parameter tokenParameters: <#tokenParameters description#>
+     
+     - returns: <#return value description#>
+     */
+    func customParameters(var tokenParameters: [String: AnyObject]) -> [String: AnyObject]
+}
+
+public extension APICustomizableDelegate {
+    
+    func customHeaders(tokenHeader: [String: String]) -> [String: String] {
+        return tokenHeader
+    }
+    
+    func customTimeoutInterval(tokenTimeoutInterval: NSTimeInterval?) -> NSTimeInterval? {
+        return tokenTimeoutInterval
+    }
+    
+    func customParameters(tokenParameters: [String: AnyObject]) -> [String: AnyObject] {
+        return tokenParameters
+    }
+}
 
 /**
 * API control class
 */
-public final class API<Error: APIKitErrorType> {
+public final class API<Error: APIKitErrorType>: APIKitProtocol {
     
     private var execQueue: Set<Pack> = []
     private let manager: Alamofire.Manager
+    private let baseURL: NSURL?
     
-    public init(configuration: NSURLSessionConfiguration = .defaultSessionConfiguration()) {
+    public weak var delegate: APICustomizableDelegate?
+    
+    public init(baseURL: NSURL? = nil, configuration: NSURLSessionConfiguration = .defaultSessionConfiguration()) {
+        
+        self.baseURL = baseURL
         
         if configuration.HTTPAdditionalHeaders?.count == 0 {
             configuration.HTTPAdditionalHeaders = Manager.defaultHTTPHeaders
@@ -56,12 +169,16 @@ public final class API<Error: APIKitErrorType> {
 
 public extension API {
     
+    public final func cancel<T : RequestToken>(clazz: T.Type) {
+        cancel(clazz, { _ in true })
+    }
+    
     /**
     cancel(_:)
     
     :param: clazz <#clazz description#>
     */
-    public final func cancel<T: RequestToken>(clazz: T.Type, _ f: T -> Bool = { _ in true }) {
+    public final func cancel<T: RequestToken>(clazz: T.Type, _ f: T -> Bool) {
         
         for pack in execQueue {
             if let token = pack.token as? T where f(token) {
@@ -154,11 +271,16 @@ public extension API {
                         let object = try token.transform(r.request, response: r.response, object: object as! T.SerializedObject)
                         promise.success(object)
                     }
-                    catch {
-                        promise.failure(Error.serializeError(error))
+                    catch let error as Error {
+                        promise.failure(error)
                     }
+                    catch {
+                        promise.failure(Error.unsupportedError(error))
+                    }
+                case let .Failure(error as Error):
+                    promise.failure(error)
                 case let .Failure(error):
-                    promise.failure(Error.networkError(error))
+                    promise.failure(Error.unsupportedError(error))
                 }
             }
         case let .String(encoding):
@@ -170,11 +292,16 @@ public extension API {
                         let object = try token.transform(r.request, response: r.response, object: object as! T.SerializedObject)
                         promise.success(object)
                     }
-                    catch {
-                        promise.failure(Error.serializeError(error))
+                    catch let error as Error {
+                        promise.failure(error)
                     }
+                    catch {
+                        promise.failure(Error.unsupportedError(error))
+                    }
+                case let .Failure(error as Error):
+                    promise.failure(error)
                 case let .Failure(error):
-                    promise.failure(Error.networkError(error))
+                    promise.failure(Error.unsupportedError(error))
                 }
             }
         case let .JSON(options):
@@ -186,11 +313,16 @@ public extension API {
                         let object = try token.transform(r.request, response: r.response, object: object as! T.SerializedObject)
                         promise.success(object)
                     }
-                    catch {
-                        promise.failure(Error.serializeError(error))
+                    catch let error as Error {
+                        promise.failure(error)
                     }
+                    catch {
+                        promise.failure(.unsupportedError(error))
+                    }
+                case let .Failure(error as Error):
+                    promise.failure(error)
                 case let .Failure(error):
-                    promise.failure(Error.networkError(error))
+                    promise.failure(.unsupportedError(error))
                 }
             }
         case let .PropertyList(options):
@@ -202,11 +334,16 @@ public extension API {
                         let object = try token.transform(r.request, response: r.response, object: object as! T.SerializedObject)
                         promise.success(object)
                     }
-                    catch {
-                        promise.failure(Error.serializeError(error))
+                    catch let error as Error {
+                        promise.failure(error)
                     }
+                    catch {
+                        promise.failure(Error.unsupportedError(error))
+                    }
+                case let .Failure(error as Error):
+                    promise.failure(error)
                 case let .Failure(error):
-                    promise.failure(Error.networkError(error))
+                    promise.failure(Error.unsupportedError(error))
                 }
             }
         case .Custom:
@@ -232,8 +369,10 @@ public extension API {
                     catch {
                         promise.failure(Error.serializeError(error))
                     }
+                case let .Failure(error as Error):
+                    promise.failure(error)
                 case let .Failure(error):
-                    promise.failure(Error.networkError(error))
+                    promise.failure(Error.unsupportedError(error))
                 }
             })
         default:
@@ -248,20 +387,22 @@ private extension API {
     func createRequest<T: RequestToken>(token: T) -> Future<Request, Error> {
         
         let method = token.method
-        let URL = NSURL(string: token.path, relativeToURL: token.baseURL)
-        let parameters = token.parameters
+        let URL = NSURL(string: token.path, relativeToURL: token.baseURL ?? baseURL)
+        let parameters = delegate?.customParameters(token.parameters ?? [:]) ?? token.parameters
         let encoding = token.encoding
         
         let URLRequest = encoding.encode({
             let URLRequest = NSMutableURLRequest(URL: URL!)
             URLRequest.HTTPMethod = method.rawValue
-            if let headers = token.headers {
-                for (k, v) in headers {
-                    URLRequest.addValue(v, forHTTPHeaderField: k)
-                }
+
+            let headers = token.headers ?? [:]
+            for (k, v) in self.delegate?.customHeaders(headers) ?? headers {
+                URLRequest.addValue(v, forHTTPHeaderField: k)
             }
             
-            if let timeoutInterval = token.timeoutInterval {
+            let timeoutInterval = self.delegate?.customTimeoutInterval(token.timeoutInterval) ?? token.timeoutInterval
+            
+            if let timeoutInterval = timeoutInterval {
                 URLRequest.timeoutInterval = timeoutInterval
             }
             return URLRequest
@@ -277,6 +418,19 @@ private extension API {
             request.validate(contentType: contentType)
         }
         
+        if let token = token as? DebugRequestToken {
+            token.printCURL(request.debugDescription)
+        
+            request.responseString(completionHandler: { r in
+                switch r.result {
+                case let .Success(value):
+                    token.printResponseString(value)
+                case let .Failure(error):
+                    token.printResponseString("\(error)")
+                }
+            })
+        }
+        
         return Future(value: request)
     }
     
@@ -284,18 +438,21 @@ private extension API {
         
         let method = token.method
         let URL = NSURL(string: token.path, relativeToURL: token.baseURL)
+        let parameters = self.delegate?.customParameters(token.parameters ?? [:]) ?? token.parameters
         let encoding = token.encoding
         
         let URLRequest = encoding.encode({
             let URLRequest = NSMutableURLRequest(URL: URL!)
             URLRequest.HTTPMethod = method.rawValue
-            if let headers = token.headers {
-                for (k, v) in headers {
-                    URLRequest.addValue(v, forHTTPHeaderField: k)
-                }
+            
+            let headers = token.headers ?? [:]
+            for (k, v) in self.delegate?.customHeaders(headers) ?? headers {
+                URLRequest.addValue(v, forHTTPHeaderField: k)
             }
             
-            if let timeoutInterval = token.timeoutInterval {
+            let timeoutInterval = self.delegate?.customTimeoutInterval(token.timeoutInterval) ?? token.timeoutInterval
+            
+            if let timeoutInterval = timeoutInterval {
                 URLRequest.timeoutInterval = timeoutInterval
             }
             return URLRequest
@@ -307,15 +464,12 @@ private extension API {
         manager.upload(
             URLRequest,
             multipartFormData: { m in
-                if let parameters = token.parameters {
+                if let parameters = parameters {
                     for (k, v) in parameters {
                         if let v = v as? String, data = v.dataUsingEncoding(NSUTF8StringEncoding) {
                             m.appendBodyPart(data: data, name: k)
                         }
                     }
-                }
-                for (k, v) in token.multiparts {
-                    
                 }
             },
             encodingCompletion: { r in
